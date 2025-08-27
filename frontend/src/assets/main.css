@@ -1,0 +1,249 @@
+/* --- Global Reset & Base --- */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background-color: #06101f; /* 主背景色 */
+  color: #cdd6f4; /*【优化】全局默认文字颜色，从 #e2e8f0 调整为更亮的 #cdd6f4 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#app { height: 100vh; }
+
+/* --- Layout --- */
+.app-layout { height: 100%; }
+.app-aside { 
+  background-color: #0c1a32; /* 侧边栏背景 */
+  border-right: none; 
+  transition: width 0.3s;
+}
+.app-main { 
+  padding: 24px; 
+  background-color: #082a42; /* 主内容区背景 */
+  overflow-y: auto;
+}
+
+/* --- Aside / Menu --- */
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff; /*【优化】Logo文字改为纯白，更突出 */
+  gap: 10px;
+  background-color: #112240;
+}
+.el-menu { border-right: none !important; }
+.el-menu-item { 
+  font-weight: 500; 
+  color: #a6b0c3 !important; /*【优化】菜单项默认文字颜色，更清晰 */
+}
+.el-menu-item.is-active { 
+  background-color: #1d2f50 !important; 
+  color: #ffffff !important; /*【优化】激活的菜单项文字改为纯白 */
+}
+
+/* --- Page & Module Styles --- */
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #e2e8f0; /* 页面大标题颜色，保持亮色 */
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #1e293b;
+}
+.module-card {
+  background-color: #0c1a32;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #1e293b;
+}
+.module-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #e2e8f0; /*【优化】模块标题颜色，确保明亮 */
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+/* 【新增】确保Element Plus表单标签清晰可见 */
+.el-form-item__label {
+  color: #a6b0c3 !important;
+}
+
+/* --- Home View Specific --- */
+.home-view { text-align: center; padding-top: 5vh; }
+.hero h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(45deg, #38bdf8, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+.hero .subtitle {
+  font-size: 1.25rem;
+  color: #94a3b8; /* 副标题颜色，保持柔和 */
+  margin-bottom: 2.5rem;
+}
+
+/* --- Research Explorer Specific --- */
+.metrics-cards { margin-bottom: 20px; }
+.metric-card {
+  background-color: #1e293b;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #cbd5e1;
+  transition: all 0.2s ease-in-out;
+}
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+.metric-card .model-name {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #ffffff; /*【优化】指标卡片中的模型名称改为纯白 */
+}
+.metric-card .metrics {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #a6b0c3; /*【优化】指标名称(MAE/MSE)颜色 */
+}
+.metric-card .metrics b {
+  color: #58a6ff; /*【优化】指标数值颜色，更鲜亮 */
+  font-size: 1rem;
+}
+
+/*【新增】让ECharts的坐标轴文字更清晰 */
+.chart text {
+  fill: #a6b0c3 !important;
+}
+
+/* --- Animation --- */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+/* --- [新增] 内容页 (About/Algorithms) 元素美化 --- */
+
+/* 通用内容卡片内的段落样式 */
+.module-card p {
+  line-height: 1.8; /* 增加行高，阅读更舒适 */
+  color: #b0c4de;   /* 使用比全局默认更亮的颜色 */
+  font-size: 1rem;
+}
+
+/* 通用内容卡片内的三级标题样式 (h3) */
+/* .module-card h3 {
+  color: #87cefa; 
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #1e293b;
+}
+.module-card h4 {
+  color: #87cefa; 
+  font-size: 1.0rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #1e293b;
+} */
+
+.module-card .card-title {
+  color: #87cefa;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 2rem; /* 第一个标题不需要上边距 */
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #1e293b;
+}
+.module-card .card-title:first-of-type {
+  margin-top: 0; /* 【关键】让卡片里的第一个标题没有上边距 */
+}
+.module-card .card-subtitle {
+  color: #87cefa;
+  font-size: 1.0rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #1e293b;
+}
+
+.module-card ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  color: #b0c4de; /* 列表文字颜色 */
+}
+.module-card li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+.module-card table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background-color: #409eff;
+}
+.module-card th, .module-card td {
+  border: 1px solid #1e293b;
+  padding: 8px;
+  text-align: left;
+  color: #0b4899; /* 表格文字颜色 */
+}
+.module-card el-table {
+  background-color: #0c1a32; /* 表格背景色 */
+}
+
+
+/* --- Element Plus 组件特定美化 --- */
+
+/* 步骤条 (el-steps) 样式优化 */
+.el-step__title {
+  font-size: 1rem !important; /* 增大标题字号 */
+}
+.el-step__title.is-finish {
+  color: #67c23a !important; /* 完成步骤的标题颜色 */
+}
+.el-step__description.is-finish {
+  color: #a6b0c3 !important; /* 完成步骤的描述文字颜色 */
+}
+.el-step__head.is-finish {
+  color: #67c23a !important;       /* 图标颜色 */
+  border-color: #67c23a !important; /* 线条颜色 */
+}
+
+/* 时间线 (el-timeline) 样式优化 */
+.el-timeline-item__timestamp {
+  color: #e6a23c !important; /* 时间戳/标题的颜色，改为醒目的橙色 */
+  font-size: 1rem !important;
+  font-weight: 600;
+}
+.el-timeline-item__content {
+  color: #b0c4de !important; /* 内容文字颜色 */
+  font-size: 0.95rem;
+  padding-bottom: 1rem; /* 增加条目间距 */
+}
+.el-timeline-item__node {
+  background-color: #409eff !important; /* 圆圈节点的颜色 */
+}

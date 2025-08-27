@@ -1,0 +1,21 @@
+# --- General ---
+.DS_Store
+*.log
+
+# --- Python / Backend ---
+/backend/venv/
+/backend/__pycache__/
+*.pyc
+.env
+
+# --- Node / Frontend ---
+# 这是最关键的一行，忽略所有的 node_modules 文件夹
+/frontend/node_modules/
+
+# 其他前端构建和开发相关文件
+/frontend/dist/
+/frontend/.vite/
+npm-debug.log*
+yarn-error.log*
+.idea
+.vscode
