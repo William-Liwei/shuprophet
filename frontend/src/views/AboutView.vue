@@ -16,7 +16,7 @@
     <!-- 2. 设计理念 -->
     <h2 class="section-title"><span>我们的理念</span></h2>
     <el-row :gutter="24">
-      <el-col :md="8" v-for="p in philosophy" :key="p.title">
+      <el-col :lg="8" :md="12" :sm="24" :xs="24" v-for="p in philosophy" :key="p.title">
         <div class="philosophy-card">
           <div class="philosophy-icon"><el-icon><component :is="p.icon" /></el-icon></div>
           <h3>{{ p.title }}</h3>
@@ -226,8 +226,16 @@ const steps = ref([
 
 .models-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  /* 默认是单列 */
+  grid-template-columns: repeat(1, 1fr); 
   gap: 1.5rem;
+}
+
+/* 在中等屏幕及以上 (>=768px)，变为两列 */
+@media (min-width: 768px) {
+  .models-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .model-intro-card {

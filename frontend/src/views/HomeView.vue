@@ -26,8 +26,10 @@
 
 /* 2. 为图片添加一点样式 */
 .home-logo {
-  width: 480px;       /* 固定图片宽度 */
-  margin-bottom: -1.5rem; /* 图片和标题之间的距离 */
+  max-width: 480px; /* 设置最大宽度 */
+  width: 80%;       /* 宽度为父容器的80% */
+  height: auto;     /* 高度自适应 */
+  margin-bottom: -1.5rem;
 }
 
 /* --- 下面的样式保持不变 --- */

@@ -18,7 +18,7 @@
             <el-row :gutter="30">
               
               <!-- 左侧：文字描述区域 -->
-              <el-col :xs="24" :md="14">
+              <el-col :xs="24" :md="14" style="margin-bottom: 2rem;">
                 <h3><el-icon><Tickets /></el-icon> 核心思想</h3>
                 <p>{{ algo.coreIdea }}</p>
 
@@ -84,7 +84,8 @@
         <el-dialog
           v-model="dialogVisible"
           :title="`'${currentAlgoName}' 的 BibTeX 引用`"
-          width="600px"
+          width="80%"
+          max-width="600px"
           append-to-body
         >
           <div class="bibtex-container">

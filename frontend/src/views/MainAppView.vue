@@ -2,7 +2,7 @@
   <div>
     <h1 class="page-title">{{ $route.meta.title }}</h1>
     <el-row :gutter="24">
-      <el-col :xs="24" :lg="14">
+      <el-col :xs="24" :lg="14" style="margin-bottom: 24px;">
         <ResearchExplorer />
       </el-col>
       <el-col :xs="24" :lg="10">
