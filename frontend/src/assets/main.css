@@ -271,7 +271,7 @@ body {
 
   /* 3. [关键] 显示移动端专用的顶部栏和汉堡按钮 */
   .app-header {
-    display: flex;
+    display: flex !important; /* 使用 !important 确保覆盖 scoped style */
     align-items: center;
     background-color: #0c1a32;
     border-bottom: 1px solid #1e293b;
@@ -310,7 +310,7 @@ body {
     z-index: 1000; /* 在菜单之下，内容区之上 */
   }
 
-  /* 6. 其他视觉优化 (这部分可以根据您已有的代码进行合并) */
+  /* 6. 其他视觉优化 */
   .page-title {
     font-size: 1.5rem;
     margin-bottom: 16px;
