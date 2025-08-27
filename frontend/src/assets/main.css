@@ -247,3 +247,60 @@ body {
 .el-timeline-item__node {
   background-color: #409eff !important; /* 圆圈节点的颜色 */
 }
+
+/* --- Mobile Responsiveness --- */
+/* 当屏幕宽度小于等于 768px 时 (典型的平板和手机)，以下样式生效 */
+@media (max-width: 768px) {
+
+  /* 1. 减小整体布局的边距，为内容腾出空间 */
+  .app-main {
+    padding: 12px;
+  }
+
+  /* 2. 缩小页面主标题和相关间距 */
+  .page-title {
+    font-size: 1.5rem; /* 字体从 2rem 缩小 */
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+  }
+
+  /* 3. 缩小模块卡片的内边距 */
+  .module-card {
+    padding: 16px;
+  }
+  .module-title {
+    font-size: 1.1rem; /* 模块小标题也缩小 */
+  }
+
+  /* 4. 优化主页(Home)的标题 */
+  .hero h1 {
+    font-size: 2.2rem; /* 从 3.5rem 大幅缩小 */
+    line-height: 1.2; /* 增加行高防止文字挤在一起 */
+  }
+  .hero .subtitle {
+    font-size: 1rem;
+  }
+
+  /* 5. 优化科研探索页(Research Explorer)的指标卡片 */
+  .metric-card {
+    padding: 10px;
+  }
+  .metric-card .model-name {
+    font-size: 0.8rem;
+  }
+  .metric-card .metrics b {
+    font-size: 0.9rem;
+  }
+  /* 为堆叠的列之间增加一点垂直间距 */
+  .metrics-cards > .el-col {
+    margin-bottom: 12px;
+  }
+
+  /* 6. (关于/算法页) 减小内容卡片里标题的尺寸 */
+  .module-card .card-title {
+    font-size: 1.1rem;
+  }
+  .module-card .card-subtitle {
+    font-size: 0.9rem;
+  }
+}
