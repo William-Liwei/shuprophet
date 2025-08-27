@@ -255,6 +255,7 @@ body {
   /* 1. 减小整体布局的边距，为内容腾出空间 */
   .app-main {
     padding: 12px;
+    margin-left: 0; /* [关键修复] 移除为桌面端侧边栏预留的左外边距 */
   }
 
   /* 2. 缩小页面主标题和相关间距 */
@@ -302,5 +303,10 @@ body {
   }
   .module-card .card-subtitle {
     font-size: 0.9rem;
+  }
+
+  /* [关键修复] 隐藏侧边栏，解决内容区被挤出屏幕的问题 */
+  .app-aside {
+      display: none;
   }
 }
