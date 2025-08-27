@@ -252,61 +252,70 @@ body {
 /* 当屏幕宽度小于等于 768px 时 (典型的平板和手机)，以下样式生效 */
 @media (max-width: 768px) {
 
-  /* 1. 减小整体布局的边距，为内容腾出空间 */
-  .app-main {
-    padding: 12px;
-    margin-left: 0; /* [关键修复] 移除为桌面端侧边栏预留的左外边距 */
+  /* 1. [关键] 将侧边栏改为固定定位，并默认移出屏幕外 */
+  .app-aside {
+    position: fixed; /* 脱离文档流，使其可以覆盖在内容之上 */
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1001; /* 确保菜单在遮罩层之上 */
+    transform: translateX(-100%); /* 默认隐藏在左侧屏幕外 */
+    transition: transform 0.3s ease-in-out; /* 添加平滑的滑动动画 */
+    border-right: 1px solid #1e293b; /* 在移动端加上边框，更好看 */
   }
 
-  /* 2. 缩小页面主标题和相关间距 */
+  /* 2. [关键] 当拥有 is-mobile-open 类时，将侧边栏滑入屏幕 */
+  .app-aside.is-mobile-open {
+    transform: translateX(0); /* 移动回屏幕内 */
+  }
+
+  /* 3. [关键] 显示移动端专用的顶部栏和汉堡按钮 */
+  .app-header {
+    display: flex;
+    align-items: center;
+    background-color: #0c1a32;
+    border-bottom: 1px solid #1e293b;
+    height: 60px;
+    padding: 0 16px;
+    position: sticky; /* 让顶部栏在滚动时固定在顶部 */
+    top: 0;
+    z-index: 999;
+  }
+  .mobile-menu-toggle {
+    font-size: 24px;
+    cursor: pointer;
+    color: #e2e8f0;
+  }
+  .header-title {
+    margin-left: 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+
+  /* 4. [关键] 主内容区不再需要为侧边栏留空 */
+  .app-main {
+    padding: 12px;
+    margin-left: 0; 
+  }
+
+  /* 5. [关键] 遮罩层样式 */
+  .menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000; /* 在菜单之下，内容区之上 */
+  }
+
+  /* 6. 其他视觉优化 (这部分可以根据您已有的代码进行合并) */
   .page-title {
-    font-size: 1.5rem; /* 字体从 2rem 缩小 */
+    font-size: 1.5rem;
     margin-bottom: 16px;
     padding-bottom: 8px;
   }
-
-  /* 3. 缩小模块卡片的内边距 */
-  .module-card {
-    padding: 16px;
-  }
-  .module-title {
-    font-size: 1.1rem; /* 模块小标题也缩小 */
-  }
-
-  /* 4. 优化主页(Home)的标题 */
-  .hero h1 {
-    font-size: 2.2rem; /* 从 3.5rem 大幅缩小 */
-    line-height: 1.2; /* 增加行高防止文字挤在一起 */
-  }
-  .hero .subtitle {
-    font-size: 1rem;
-  }
-
-  /* 5. 优化科研探索页(Research Explorer)的指标卡片 */
-  .metric-card {
-    padding: 10px;
-  }
-  .metric-card .model-name {
-    font-size: 0.8rem;
-  }
-  .metric-card .metrics b {
-    font-size: 0.9rem;
-  }
-  /* 为堆叠的列之间增加一点垂直间距 */
-  .metrics-cards > .el-col {
-    margin-bottom: 12px;
-  }
-
-  /* 6. (关于/算法页) 减小内容卡片里标题的尺寸 */
-  .module-card .card-title {
-    font-size: 1.1rem;
-  }
-  .module-card .card-subtitle {
-    font-size: 0.9rem;
-  }
-
-  /* [关键修复] 隐藏侧边栏，解决内容区被挤出屏幕的问题 */
-  .app-aside {
-      display: none;
-  }
+  .module-card { padding: 16px; }
+  .module-title { font-size: 1.1rem; }
 }
