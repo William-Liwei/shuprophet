@@ -14,7 +14,7 @@ app = Flask(__name__, static_folder='../dist')
 CORS(app)
 
 # --- 定义路径 ---
-STATIC_DATA_DIR = 'backend/static_data/'
+STATIC_DATA_DIR = 'static_data'
 UPLOADS_DIR = 'uploads'
 if not os.path.exists(UPLOADS_DIR):
     os.makedirs(UPLOADS_DIR)
