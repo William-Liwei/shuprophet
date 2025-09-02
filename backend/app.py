@@ -8,6 +8,10 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 import time
 from models.arima_predictor import predict_with_arima
 
+from werkzeug.utils import secure_filename
+from models.prediction_tool import analyze_and_predict
+from models.agent_chain import get_conversational_response, generate_standalone_report
+
 # --- 初始化 Flask 应用 ---
 # app = Flask(__name__)
 app = Flask(__name__, static_folder='../dist')
@@ -121,6 +125,54 @@ def live_predict():
         prediction_result = predict_with_arima(filepath, steps=10)
         return jsonify(prediction_result)
     return jsonify({"error": "File upload failed"}), 500
+
+# --- 核心升级：新增一个只处理文本消息的API ---
+@app.route('/api/agent-message', methods=['POST'])
+def agent_message():
+    """【智能助理对话API】: 接收用户文本消息，返回助理的文本回复。"""
+    data = request.json
+    user_message = data.get('message')
+    session_id = data.get('session_id', 'default_session') # 获取会话ID
+
+    if not user_message:
+        return jsonify({"error": "消息内容不能为空"}), 400
+
+    # 调用我们新的对话处理函数
+    agent_reply = get_conversational_response(user_message, session_id)
+    
+    return jsonify({"reply": agent_reply})
+
+# --- 核心升级：修改旧的API，让它只负责文件上传和报告生成 ---
+@app.route('/api/agent-upload-predict', methods=['POST'])
+def agent_upload_predict():
+    """【智能助理文件处理API】: 接收文件，调用工具，并让LangChain生成最终报告。"""
+    if 'file' not in request.files:
+        return jsonify({"error": "请求中未找到文件部分"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "未选择任何文件"}), 400
+
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(UPLOADS_DIR, filename)
+        file.save(filepath)
+
+        # 1. 调用数据分析工具 (这个没变)
+        analysis_result = analyze_and_predict(filepath)
+        
+        # 2. 调用【新的、独立的】报告生成函数
+        report_markdown = generate_standalone_report(analysis_result)
+
+        # 3. 将报告和图表数据一起返回给前端 (这个没变)
+        response_data = {
+            "report": report_markdown,
+            "chart_data": analysis_result.get("chart_data", None)
+        }
+        
+        return jsonify(response_data)
+
+    return jsonify({"error": "文件上传失败"}), 500
 
 # --- 服务前端静态文件的路由 ---
 # 这个路由捕获所有不是API的请求

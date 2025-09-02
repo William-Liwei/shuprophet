@@ -24,6 +24,10 @@
           <el-icon><House /></el-icon>
           <span>项目概览</span>
         </el-menu-item>
+        <el-menu-item index="/agent">
+          <el-icon><MagicStick /></el-icon>
+          <span>智能助理</span>
+        </el-menu-item>
         <el-menu-item index="/app">
           <el-icon><DataAnalysis /></el-icon>
           <span>核心功能</span>

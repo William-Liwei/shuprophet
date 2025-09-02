@@ -11,6 +11,12 @@ const router = createRouter({
       meta: { title: '项目概览' }
     },
     {
+      path: '/agent',
+      name: 'agent',
+      component: () => import('../views/AgentView.vue'),
+      meta: { title: '智能助理' }
+    },
+    {
       path: '/app',
       name: 'app',
       component: () => import('../views/MainAppView.vue'),

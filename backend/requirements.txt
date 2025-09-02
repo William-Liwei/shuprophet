@@ -6,3 +6,8 @@ numpy
 scipy
 scikit-learn
 gunicorn
+langchain
+langchain-openai
+langchain-moonshot
+python-dotenv
+langchainhub
