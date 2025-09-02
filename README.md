@@ -1,30 +1,49 @@
 
-
 # 鼠先知 (SHU Prophet) - 新一代时序智能预测与决策平台
 
-![Project Screenshot](./frontend/src/assets/logo.png)
+<div align="center">
+  <img src="./frontend/src/assets/logo.png" alt="Project Logo" width="600"/>
+</div>
 
-**鼠先知 (SHU Prophet)** 是一个为高水平科研量身打造的全栈Web应用。它旨在将前沿的时间序列预测算法成果，通过一个交互式、可视化的平台进行展示、验证和应用，打通从理论研究到实践决策的“最后一公里”。
+<p align="center">
+  <strong>一个集前沿算法、交互验证与AI智能助理于一体的全栈Web应用，专为高水平科研成果的展示、探索与应用而生。</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js" alt="Vue 3">
+  <img src="https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python" alt="Python 3">
+  <img src="https://img.shields.io/badge/Flask-2.x-000000?style=for-the-badge&logo=flask" alt="Flask">
+  <img src="https://img.shields.io/badge/LangChain-Integration-8A2BE2?style=for-the-badge" alt="LangChain">
+</p>
+
+---
+
+**鼠先知 (SHU Prophet)** 旨在将复杂的前沿时间序列预测算法，通过一个交互式、可视化的平台进行呈现、验证和应用，彻底打通从理论研究到实践决策的“最后一公里”。平台的核心驱动力不仅包括强大的自研模型矩阵，更引入了由大语言模型（LLM）赋能的 **AI智能助理**，将用户体验提升到全新高度。
 
 ## 项目亮点 (Highlights)
 
-- **成果即数据 (Achievement as Data)**: 采用先进的“CSV驱动”策略，将您的科研成果（即模型跑出的卓越结果）作为核心输入，后端自动完成数据预处理、性能度量和可视化，完美聚焦于展示算法的优越性。
-- **全栈技术栈 (Full-Stack Architecture)**: 前端采用 Vue 3 + Vite + Element Plus + ECharts 构建现代化、响应式的用户界面；后端采用 Python + Flask + Pandas + Scikit-learn 提供稳定、高效的数据处理API。
-- **丰富的交互体验 (Rich Interaction)**: 提供多页面导航、酷炫的欢迎页、图文并茂的算法介绍以及核心的数据探索与实时预测功能，为用户提供专业、流畅的体验。
-- **专业的性能度量 (Professional Metrics)**: 后端会自动计算每个预测模型相对于真实值的 **MAE (平均绝对误差)** 和 **MSE (均方根误差)**，并在前端清晰展示，让模型优劣一目了然。
-- **高度可扩展 (Highly Extensible)**: 只需在CSV文件中增加新的数据列，即可在前端自动展示新模型的对比结果，无需修改任何代码，极大方便了算法的迭代与验证。
+- **AI 智能助理 (AI Agent)**: 平台内置由 `LangChain` 和大语言模型（如Kimi, Claude）驱动的AI助理。它不仅能与用户进行自然语言对话，更能深度理解项目背景，引导用户上传数据，并自动生成专业的、图文并茂的预测分析报告。
+- **自研模型矩阵 (Proprietary Models)**: 平台理论核心由四大独立设计和实现的SOTA（State-of-the-Art）模型驱动，共同构成了强大的预测能力：
+
+  - **TimeFlowDiffuser**: 创新的层级式扩散框架，擅长长周期预测。
+  - **EnergyPatchTST**: 专为能源领域设计，支持多尺度分解与不确定性量化。
+  - **LWSpace**: 结合小波变换与状态空间，对噪声数据鲁棒性极强。
+  - **SWIFT**: 双路径协同架构，完美平衡预测精度与效率。
+- **成果即数据 (Achievement as Data)**: 采用“CSV驱动”策略，科研成果（模型预测结果）可作为核心输入，后端自动完成数据预处理、性能度量（MAE/MSE）和多模型可视化对比。
+- **现代化全栈技术 (Modern Full-Stack)**: 前端采用 `Vue 3 + Vite + Element Plus + ECharts` 构建响应式界面；后端采用 `Python + Flask + Pandas` 提供高效数据API，并通过 `LangChain` 无缝集成大模型能力。
+- **高度可扩展 (Highly Extensible)**: 在“科研成果探索”模块中，只需在CSV文件中增加数据列，即可在前端自动展示新模型的对比结果，无需修改任何代码，极大方便了算法的迭代与验证。
 
 ## 快速开始 (Quick Start)
 
 在开始之前，请确保您的电脑上已经安装了以下环境：
 
-- **Python** (>= 3.7)
+- **Python** (>= 3.9)
 - **Node.js** (>= 16)
 - **pip** & **npm**
 
 ### 1. 启动后端服务 (Backend)
 
-首先，启动提供数据处理API的Flask后端。
+首先，启动提供数据处理和AI助理API的Flask后端。
 
 ```bash
 # 1. 进入后端目录
@@ -38,7 +57,12 @@ python -m venv venv
 # 3. 安装所有Python依赖
 pip install -r requirements.txt
 
-# 4. 运行Flask后端服务
+# 4. 配置API密钥(重要!)
+#    - 复制 .env.example 文件并重命名为 .env
+#    - cp .env.example .env
+#    - 在 .env 文件中填入你的大模型API Key (例如 Kimi 或 Claude)
+
+# 5. 运行Flask后端服务
 python app.py
 
 # 服务将运行在 http://127.0.0.1:5000
@@ -47,7 +71,7 @@ python app.py
 
 ### 2. 启动前端服务 (Frontend)
 
-然后，在**新的终端窗口**中启动提供用户界面的Vite前端。
+然后，在**一个新的终端窗口**中启动提供用户界面的Vite前端。
 
 ```bash
 # 1. 进入前端目录
@@ -62,36 +86,45 @@ npm run dev
 # 前端应用将运行在 http://localhost:5173 (或其它可用端口)
 ```
 
-现在，打开您的浏览器并访问 `http://localhost:5173`，即可开始探索“鼠先知”平台！
+现在，打开您的浏览器并访问 `http://localhost:5173`，即可开始与“鼠先知”平台的AI智能助理互动！
 
 ## 技术栈 (Tech Stack)
 
-| 分类               | 技术                                                                        |
-| ------------------ | --------------------------------------------------------------------------- |
-| **前端**     | `Vue 3`, `Vite`, `Vue Router`, `Element Plus`, `ECharts`          |
-| **后端**     | `Python 3`, `Flask`, `Pandas`, `NumPy`, `Scikit-learn`, `SciPy` |
-| **开发工具** | `VS Code`, `Git`, `npm`, `pip`                                      |
+| 分类                           | 技术                                                                              |
+| :----------------------------- | :-------------------------------------------------------------------------------- |
+| **前端 (Frontend)**      | `Vue 3`, `Vite`, `Vue Router`, `Element Plus`, `ECharts`, `Axios`     |
+| **后端 (Backend)**       | `Python 3`, `Flask`, `Pandas`, `NumPy`, `Scikit-learn`, `Statsmodels` |
+| **AI 核心 (AI Core)**    | `LangChain`, `ChatOpenAI` (兼容 Kimi, Claude 等), `ConversationChain`       |
+| **开发工具 (Dev Tools)** | `VS Code`, `Git`, `npm`, `pip`, `venv`, `python-dotenv`               |
 
 ## 项目结构 (Project Structure)
 
 ```
-prophet-project-v2/
+shu-prophet/
 ├── backend/                  # 后端代码
+│   ├── models/               # 核心逻辑模块
+│   │   ├── agent_chain.py    # LangChain 智能助理核心
+│   │   ├── prediction_tool.py# 数据分析与预测工具
+│   │   └── ...
+│   ├── static_data/          # 静态数据目录
+│   │   └── research_datasets/  # 科研成果CSV存放处
+│   ├── uploads/              # 用户上传文件存放处
+│   ├── .env                  # (需自行创建) 环境变量，存放API Key
+│   ├── .env.example          # 环境变量示例文件
 │   ├── app.py                # Flask 主应用
-│   ├── requirements.txt      # Python 依赖
-│   └── static_data/          # 静态数据目录
-│       └── research_datasets/  # 科研成果CSV存放处
+│   └── requirements.txt      # Python 依赖
+│
 ├── frontend/                 # 前端代码
-│   ├── public/               # 静态资源 (如favicon)
 │   ├── src/
-│   │   ├── assets/           # 静态资源 (会被Vite处理)
-│   │   ├── components/       # Vue 可复用组件
+│   │   ├── assets/           # 静态资源
+│   │   ├── components/       # Vue 可复用组件 (AgentInteraction.vue 等)
 │   │   ├── router/           # Vue 路由配置
-│   │   ├── views/            # Vue 页面级组件
+│   │   ├── views/            # Vue 页面级组件 (AgentView.vue 等)
 │   │   ├── App.vue           # 根组件
 │   │   └── main.js           # 应用入口
 │   ├── package.json          # Node.js 依赖
-│   └── vite.config.js        # Vite 配置文件
+│   └── ...
+│
 └── README.md                 # 就是你正在看的这个文件
 ```
 
@@ -108,8 +141,13 @@ prophet-project-v2/
 
 **完成！** 您无需修改任何代码。刷新前端页面，在“核心功能”的图表和指标卡片中，就会自动出现新模型 `MyAwesomeModel` 的对比结果。
 
-## 作者 (Authors)
+## 作者 (Author)
 
-- **Wei Li**
+- **Wei Li, Shanghai University**
+- liwei008009@163.com
 
 ---
+
+<p align="center">
+  <em>为推动时间序列研究的发展而构建。</em>
+</p>
