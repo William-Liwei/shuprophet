@@ -56,46 +56,48 @@ def parse_csv():
     file_path = os.path.join(STATIC_DATA_DIR, 'research_datasets', dataset_file)
 
     try:
-        # 1. 读取模型名称 (约定在第二行)
-        model_names_raw = pd.read_csv(file_path, skiprows=1, nrows=1, header=None).iloc[0].tolist()
-        
-        # 2. 读取数据 (从第三行开始)
-        raw = pd.read_csv(file_path, skiprows=2, header=None)
-        
+        # 1. 读取CSV（第一行是列名）
+        raw = pd.read_csv(file_path)
+
+        # 2. 从列名中提取模型名称
+        model_names_raw = raw.columns.tolist()
+
         # 3. 数据清理与处理
         INVALID = -1.0145037163717687
         TOL = 1e-6
-        
+
         response = {"actual_data": {}, "model_predictions": []}
-        
+
         # 先处理并存储Ground Truth数据
-        gt_x_col, gt_y_col = raw.columns[0], raw.columns[1]
+        gt_x_col, gt_y_col = 'actual_x', 'actual_y'
         gt_df_raw = raw[[gt_x_col, gt_y_col]].dropna()
         gt_df = gt_df_raw.loc[~np.isclose(gt_df_raw[gt_y_col], INVALID, atol=TOL)].astype(float)
         gt_df = gt_df.groupby(gt_x_col, as_index=False)[gt_y_col].mean()
         gt_y_smooth = smooth(gt_df[gt_y_col].values)
         gt_processed_data = list(zip(gt_df[gt_x_col].values, gt_y_smooth))
-        gt_name = str(model_names_raw[0]).replace('_x', '').replace('_X', '')
-        response["actual_data"] = {"model_name": gt_name, "data": gt_processed_data}
+        response["actual_data"] = {"model_name": "Actual", "data": gt_processed_data}
 
         # 循环处理所有预测模型
-        for i in range(2, len(raw.columns), 2):
-            pred_x_col, pred_y_col = raw.columns[i], raw.columns[i+1]
-            
-            pred_df_raw = raw[[pred_x_col, pred_y_col]].dropna()
-            pred_df = pred_df_raw.loc[~np.isclose(pred_df_raw[pred_y_col], INVALID, atol=TOL)].astype(float)
-            pred_df = pred_df.groupby(pred_x_col, as_index=False)[pred_y_col].mean()
-            
-            pred_y_smooth = smooth(pred_df[pred_y_col].values)
-            pred_processed_data = list(zip(pred_df[pred_x_col].values, pred_y_smooth))
-            
+        model_cols = [col for col in raw.columns if col.endswith('_x') and col != 'actual_x']
+        for model_x_col in model_cols:
+            model_name = model_x_col.replace('_x', '')
+            model_y_col = model_name + '_y'
+
+            if model_y_col not in raw.columns:
+                continue
+
+            pred_df_raw = raw[[model_x_col, model_y_col]].dropna()
+            pred_df = pred_df_raw.loc[~np.isclose(pred_df_raw[model_y_col], INVALID, atol=TOL)].astype(float)
+            pred_df = pred_df.groupby(model_x_col, as_index=False)[model_y_col].mean()
+
+            pred_y_smooth = smooth(pred_df[model_y_col].values)
+            pred_processed_data = list(zip(pred_df[model_x_col].values, pred_y_smooth))
+
             # 计算性能指标
-            # 插值gt以对齐预测的x轴
-            gt_y_interpolated = np.interp(pred_df[pred_x_col], gt_df[gt_x_col], gt_y_smooth)
+            gt_y_interpolated = np.interp(pred_df[model_x_col], gt_df[gt_x_col], gt_y_smooth)
             mae = mean_absolute_error(gt_y_interpolated, pred_y_smooth)
             mse = mean_squared_error(gt_y_interpolated, pred_y_smooth)
-            
-            model_name = str(model_names_raw[i]).replace('_x', '').replace('_X', '')
+
             response["model_predictions"].append({
                 "model_name": model_name,
                 "data": pred_processed_data,

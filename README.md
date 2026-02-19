@@ -1,12 +1,11 @@
-
-# 鼠先知 (SHU Prophet) - 新一代时序智能预测与决策平台
+# 鼠先知 (SHU Prophet) - 时序预测模型可视化平台
 
 <div align="center">
   <img src="./frontend/src/assets/logo.png" alt="Project Logo" width="600"/>
 </div>
 
 <p align="center">
-  <strong>一个集前沿算法、交互验证与AI智能助理于一体的全栈Web应用，专为高水平科研成果的展示、探索与应用而生。</strong>
+  <strong>基于团队自研的时间序列分析模型交互式展示平台</strong>
 </p>
 
 <p align="center">
@@ -18,136 +17,186 @@
 
 ---
 
-**鼠先知 (SHU Prophet)** 旨在将复杂的前沿时间序列预测算法，通过一个交互式、可视化的平台进行呈现、验证和应用，彻底打通从理论研究到实践决策的“最后一公里”。平台的核心驱动力不仅包括强大的自研模型矩阵，更引入了由大语言模型（LLM）赋能的 **AI智能助理**，将用户体验提升到全新高度。
+**鼠先知 (SHU Prophet)** 是一个用于展示和对比时间序列预测模型性能的Web应用平台。平台集成了多个已发表的学术模型，提供交互式可视化界面和AI辅助分析功能，便于研究人员和开发者直观地理解不同模型的预测效果。
 
-## 项目亮点 (Highlights)
+## 核心功能
 
-- **AI 智能助理 (AI Agent)**: 平台内置由 `LangChain` 和大语言模型（如Kimi, Claude）驱动的AI助理。它不仅能与用户进行自然语言对话，更能深度理解项目背景，引导用户上传数据，并自动生成专业的、图文并茂的预测分析报告。
-- **自研模型矩阵 (Proprietary Models)**: 平台理论核心由四大独立设计和实现的SOTA（State-of-the-Art）模型驱动，共同构成了强大的预测能力：
+### 📊 模型性能可视化
 
-  - **TimeFlowDiffuser**: 创新的层级式扩散框架，擅长长周期预测。
-  - **EnergyPatchTST**: 专为能源领域设计，支持多尺度分解与不确定性量化。
-  - **LWSpace**: 结合小波变换与状态空间，对噪声数据鲁棒性极强。
-  - **SWIFT**: 双路径协同架构，完美平衡预测精度与效率。
-- **成果即数据 (Achievement as Data)**: 采用“CSV驱动”策略，科研成果（模型预测结果）可作为核心输入，后端自动完成数据预处理、性能度量（MAE/MSE）和多模型可视化对比。
-- **现代化全栈技术 (Modern Full-Stack)**: 前端采用 `Vue 3 + Vite + Element Plus + ECharts` 构建响应式界面；后端采用 `Python + Flask + Pandas` 提供高效数据API，并通过 `LangChain` 无缝集成大模型能力。
-- **高度可扩展 (Highly Extensible)**: 在“科研成果探索”模块中，只需在CSV文件中增加数据列，即可在前端自动展示新模型的对比结果，无需修改任何代码，极大方便了算法的迭代与验证。
+- **多模型对比展示**: 在同一图表中对比多个预测模型的表现
+- **性能指标计算**: 自动计算并展示MAE、MSE等评估指标
+- **交互式图表**: 基于ECharts的动态图表，支持缩放、数据筛选等操作
+- **性能排名**: 按预测精度自动排序，直观展示模型优劣
 
-## 快速开始 (Quick Start)
+### 🤖 AI智能分析
 
-在开始之前，请确保您的电脑上已经安装了以下环境：
+平台集成了基于LangChain的AI助理，提供以下功能：
 
-- **Python** (>= 3.9)
-- **Node.js** (>= 16)
+- **数据特征分析**: 自动识别趋势、波动性、异常值和周期性
+- **模型推荐**: 根据数据特征智能推荐适合的预测模型
+- **分析报告生成**: 自动生成包含数据洞察和预测结果的专业报告
+- **对话式交互**: 支持自然语言问答，解答用户关于模型和预测的疑问
+
+### 🔬 集成模型
+
+平台展示了以下已发表的时间序列预测模型：
+
+| 模型                       | 会议        | 级别  | 核心技术                  |
+| -------------------------- | ----------- | ----- | ------------------------- |
+| **ScatterFusion**    | ICASSP 2026 | CCF-B | 层级散射变换              |
+| **AWGFormer**        | ICASSP 2026 | CCF-B | 自适应小波引导Transformer |
+| **EnergyPatchTST**   | ICIC 2025   | CCF-C | 序列分块与不确定性量化    |
+| **SWIFT**            | ICANN 2025  | CCF-C | 状态空间与扩张卷积融合    |
+| **LWSpace**          | ICIC 2025   | CCF-C | 小波分解与选择性状态空间  |
+| **TimeFlowDiffuser** | ICANN 2025  | CCF-C | 层级式扩散框架            |
+
+## 快速开始
+
+### 环境要求
+
+- **Python** >= 3.9
+- **Node.js** >= 16
 - **pip** & **npm**
 
-### 1. 启动后端服务 (Backend)
-
-首先，启动提供数据处理和AI助理API的Flask后端。
+### 1. 后端启动
 
 ```bash
-# 1. 进入后端目录
+# 进入后端目录
 cd backend
 
-# 2. (推荐) 创建并激活Python虚拟环境
+# 创建虚拟环境（推荐）
 python -m venv venv
 # Windows: venv\Scripts\activate
 # macOS/Linux: source venv/bin/activate
 
-# 3. 安装所有Python依赖
+# 安装依赖
 pip install -r requirements.txt
 
-# 4. 配置API密钥(重要!)
-#    - 复制 .env.example 文件并重命名为 .env
-#    - cp .env.example .env
-#    - 在 .env 文件中填入你的大模型API Key (例如 Kimi 或 Claude)
+# 配置环境变量
+# 复制 .env.example 为 .env，并填入API密钥
+cp .env.example .env
 
-# 5. 运行Flask后端服务
+# 启动服务
 python app.py
-
-# 服务将运行在 http://127.0.0.1:5000
-# 请保持此终端窗口运行
 ```
 
-### 2. 启动前端服务 (Frontend)
+后端服务将运行在 `http://127.0.0.1:5000`
 
-然后，在**一个新的终端窗口**中启动提供用户界面的Vite前端。
+### 2. 前端启动
 
 ```bash
-# 1. 进入前端目录
+# 进入前端目录
 cd frontend
 
-# 2. 安装所有Node.js依赖
+# 安装依赖
 npm install
 
-# 3. 启动Vite开发服务器
+# 启动开发服务器
 npm run dev
-
-# 前端应用将运行在 http://localhost:5173 (或其它可用端口)
 ```
 
-现在，打开您的浏览器并访问 `http://localhost:5173`，即可开始与“鼠先知”平台的AI智能助理互动！
+前端应用将运行在 `http://localhost:5173`
 
-## 技术栈 (Tech Stack)
+## 技术架构
 
-| 分类                           | 技术                                                                              |
-| :----------------------------- | :-------------------------------------------------------------------------------- |
-| **前端 (Frontend)**      | `Vue 3`, `Vite`, `Vue Router`, `Element Plus`, `ECharts`, `Axios`     |
-| **后端 (Backend)**       | `Python 3`, `Flask`, `Pandas`, `NumPy`, `Scikit-learn`, `Statsmodels` |
-| **AI 核心 (AI Core)**    | `LangChain`, `ChatOpenAI` (兼容 Kimi, Claude 等), `ConversationChain`       |
-| **开发工具 (Dev Tools)** | `VS Code`, `Git`, `npm`, `pip`, `venv`, `python-dotenv`               |
+### 前端技术栈
 
-## 项目结构 (Project Structure)
+- **框架**: Vue 3 + Vite
+- **UI组件**: Element Plus
+- **数据可视化**: ECharts
+- **路由**: Vue Router
+- **HTTP客户端**: Axios
+
+### 后端技术栈
+
+- **Web框架**: Flask
+- **数据处理**: Pandas, NumPy
+- **统计分析**: Scikit-learn, Statsmodels
+- **AI集成**: LangChain, OpenAI-compatible APIs
+
+### AI功能实现
+
+平台的AI分析功能采用混合架构：
+
+- **统计分析**: 使用Python进行趋势检测、异常识别等计算（无API调用成本）
+- **自然语言生成**: 使用LLM将分析结果转化为易读的报告
+- **对话管理**: 基于LangChain的会话记忆和上下文管理
+
+## 项目结构
 
 ```
 shu-prophet/
-├── backend/                  # 后端代码
-│   ├── models/               # 核心逻辑模块
-│   │   ├── agent_chain.py    # LangChain 智能助理核心
-│   │   ├── prediction_tool.py# 数据分析与预测工具
-│   │   └── ...
-│   ├── static_data/          # 静态数据目录
-│   │   └── research_datasets/  # 科研成果CSV存放处
-│   ├── uploads/              # 用户上传文件存放处
-│   ├── .env                  # (需自行创建) 环境变量，存放API Key
-│   ├── .env.example          # 环境变量示例文件
-│   ├── app.py                # Flask 主应用
-│   └── requirements.txt      # Python 依赖
+├── backend/
+│   ├── models/
+│   │   ├── agent_chain.py          # AI助理核心逻辑
+│   │   ├── prediction_tool.py      # 预测分析工具
+│   │   └── arima_predictor.py      # ARIMA基线模型
+│   ├── static_data/
+│   │   └── research_datasets/      # 预测数据集
+│   ├── app.py                      # Flask主应用
+│   └── requirements.txt
 │
-├── frontend/                 # 前端代码
+├── frontend/
 │   ├── src/
-│   │   ├── assets/           # 静态资源
-│   │   ├── components/       # Vue 可复用组件 (AgentInteraction.vue 等)
-│   │   ├── router/           # Vue 路由配置
-│   │   ├── views/            # Vue 页面级组件 (AgentView.vue 等)
-│   │   ├── App.vue           # 根组件
-│   │   └── main.js           # 应用入口
-│   ├── package.json          # Node.js 依赖
-│   └── ...
+│   │   ├── components/             # Vue组件
+│   │   ├── views/                  # 页面视图
+│   │   ├── router/                 # 路由配置
+│   │   └── assets/                 # 静态资源
+│   └── package.json
 │
-└── README.md                 # 就是你正在看的这个文件
+└── README.md
 ```
 
-## 如何扩展？(How to Extend)
+## 数据格式
 
-扩展本项目的核心成果展示非常简单！
+平台使用标准CSV格式存储预测数据。每个数据集包含：
 
-假设您有一个新的模型 `MyAwesomeModel`，并已得到其预测结果。
+- `actual_x`, `actual_y`: 真实观测值
+- `{ModelName}_x`, `{ModelName}_y`: 各模型的预测值
 
-1. 打开 `backend/static_data/research_datasets/` 目录下的CSV文件。
-2. 在文件的**第二行（表头行）**，在末尾新增两列：`MyAwesomeModel_X,MyAwesomeModel_Y`。
-3. 在下面的**数据行**中，将您的新模型预测的 `x` 和 `y` 结果数据，分别粘贴到这两列下方。
-4. 保存文件。
+示例：
 
-**完成！** 您无需修改任何代码。刷新前端页面，在“核心功能”的图表和指标卡片中，就会自动出现新模型 `MyAwesomeModel` 的对比结果。
+```csv
+actual_x,actual_y,ScatterFusion_x,ScatterFusion_y,AWGFormer_x,AWGFormer_y
+0.0,-1.086,0.0,-1.089,0.0,-1.092
+0.1,-1.006,0.1,-1.008,0.1,-1.011
+...
+```
 
-## 作者 (Author)
+## 使用说明
 
-- **Wei Li, Shanghai University**
-- liwei008009@163.com
+### 查看模型对比
+
+1. 访问"科研成果探索"页面
+2. 选择数据集（如ETTh1_full.csv）
+3. 系统自动加载并展示所有模型的预测结果
+4. 查看性能对比图表和评估指标
+
+### 使用AI分析
+
+1. 访问"智能助手"页面
+2. 上传自己的时间序列数据（CSV格式）
+3. AI助理自动分析数据特征并生成报告
+4. 可通过对话进一步询问分析细节
+
+### 查看算法详情
+
+1. 访问"算法文库"页面
+2. 浏览各模型的技术细节和论文信息
+3. 查看BibTeX引用格式
+
+## 作者
+
+**Wei Li**
+Shanghai University
+liwei008009@163.com
+
+## 许可
+
+本项目仅用于学术研究和教学展示。
 
 ---
 
 <p align="center">
-  <em>为推动时间序列研究的发展而构建。</em>
+  <em>Time Series Forecasting Research Platform</em>
 </p>

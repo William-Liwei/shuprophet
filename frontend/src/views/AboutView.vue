@@ -28,7 +28,7 @@
     <!-- 3. 自研模型矩阵 -->
     <h2 class="section-title"><span>自研模型矩阵：驱动平台的核心引擎</span></h2>
     <div class="intro-paragraph">
-      <p>平台的核心由我们独立设计和实现的四大SOTA（State-of-the-Art）模型驱动。它们并非孤立的算法，而是一个针对时间序列预测中不同挑战（如多尺度、不确定性、长程依赖）而构建的协同矩阵，共同构成了“鼠先知”强大的预测能力。</p>
+      <p>平台的核心由我们独立设计和实现的六大SOTA（State-of-the-Art）模型驱动，包括2篇CCF-B和4篇CCF-C论文。它们并非孤立的算法，而是一个针对时间序列预测中不同挑战（如多尺度、不确定性、长程依赖）而构建的协同矩阵，共同构成了"鼠先知"强大的预测能力。</p>
     </div>
     <div class="models-grid">
       <div class="model-intro-card" v-for="model in models" :key="model.name">
@@ -80,16 +80,22 @@ const goToAlgorithms = () => router.push('/algorithms');
 const philosophy = ref([
   { icon: Aim, title: '从理论到实践', description: '我们致力于弥合学术研究与工业应用之间的鸿沟。平台不仅是SOTA算法的试验场，更是能将前沿理论转化为可靠、可用预测服务的桥梁。' },
   { icon: View, title: '可视化驱动洞察', description: '“一图胜千言”。我们坚信，直观的数据可视化和交互式探索是理解复杂模型、发现数据规律和建立信任的最有效途径。' },
-  { icon: MagicStick, title: '开放与可扩展', description: '平台采用“CSV驱动”的开放架构。研究者无需修改任何前后端代码，仅通过更新数据文件，即可集成、验证和对比新的算法成果。' },
+  { icon: MagicStick, title: '开放与可扩展', description: '平台采用开放架构。研究者无需修改任何前后端代码，仅通过更新数据文件，即可集成、验证和对比新的算法成果。' },
 ]);
 
 // 自研模型数据
 const models = ref([
   {
-    name: 'TimeFlowDiffuser',
-    tagline: '层级扩散，生成未来',
-    description: '通过创新的层级式扩散框架，将生成模型的强大威力引入时序领域，尤其擅长处理长周期预测和复杂条件分布，为预测提供更丰富的可能性。',
-    imageUrl: 'https://www.weili.space/about/images/timeflowdiffuser.png',
+    name: 'ScatterFusion',
+    tagline: '层级散射变换，鲁棒预测',
+    description: '基于层级散射变换框架，通过多尺度不变特征提取实现鲁棒预测。该模型在ICASSP 2026 (CCF-B)发表，擅长处理复杂时序模式和噪声干扰。',
+    imageUrl: 'https://www.weili.space/about/images/scatterfusion.png',
+  },
+  {
+    name: 'AWGFormer',
+    tagline: '自适应小波引导Transformer',
+    description: '创新性地将自适应小波变换与Transformer架构结合，实现多分辨率时序预测。该模型在ICASSP 2026 (CCF-B)发表，在多尺度特征捕捉方面表现卓越。',
+    imageUrl: 'https://www.weili.space/about/images/awgformer.png',
   },
   {
     name: 'EnergyPatchTST',
@@ -98,16 +104,22 @@ const models = ref([
     imageUrl: 'https://www.weili.space/about/images/energypatchtst.png',
   },
   {
+    name: 'SWIFT',
+    tagline: '双路径协同，高效预测',
+    description: '协同融合了选择性状态空间（Mamba）和多尺度扩张卷积，通过双路径架构并行捕捉长程依赖和多尺度模式，实现了预测精度与效率的完美平衡。',
+    imageUrl: 'https://www.weili.space/about/images/swift.png',
+  },
+  {
     name: 'LWSpace',
     tagline: '小波变换与状态空间',
     description: '将经典的小波分析与现代的状态空间模型（SSM）有机结合，能够在不同频率上对序列进行精细建模，对多变和充满噪声的数据具有极强的鲁棒性。',
     imageUrl: 'https://www.weili.space/about/images/lwspace.png',
   },
   {
-    name: 'SWIFT',
-    tagline: '双路径协同，高效预测',
-    description: '协同融合了选择性状态空间（Mamba）和多尺度扩张卷积，通过双路径架构并行捕捉长程依赖和多尺度模式，实现了预测精度与效率的完美平衡。',
-    imageUrl: 'https://www.weili.space/about/images/swift.png',
+    name: 'TimeFlowDiffuser',
+    tagline: '层级扩散，生成未来',
+    description: '通过创新的层级式扩散框架，将生成模型的强大威力引入时序领域，尤其擅长处理长周期预测和复杂条件分布，为预测提供更丰富的可能性。',
+    imageUrl: 'https://www.weili.space/about/images/timeflowdiffuser.png',
   },
 ]);
 
@@ -115,7 +127,7 @@ const models = ref([
 const steps = ref([
     { title: '探索科研成果', description: '在「科研成果探索」模块，选择我们预置的数据集，直观地对比多个SOTA模型在真实数据上的预测表现、MAE和MSE等关键指标。' },
     { title: '深入算法原理', description: '在「算法介绍」页面，我们为您详细解读了每个自研模型的核心思想、关键创新和架构图，并提供了论文和代码链接以供深入研究。' },
-    { title: '体验实时预测', description: '在「实时预测体验」模块，您可以上传自己的CSV格式时间序列数据，平台将立即使用内置模型进行预测，让您亲身体验算法的实际效果。' }
+    { title: '体验实时预测', description: '在「实时预测体验」模块，您可以上传自己的时间序列数据，平台将立即使用内置模型进行预测，让您亲身体验算法的实际效果。' }
 ])
 </script>
 
@@ -132,8 +144,8 @@ const steps = ref([
   padding: 5rem 2rem;
   margin-bottom: 4rem;
   border-radius: 18px;
-  background: radial-gradient(circle, rgba(29,47,80,1) 0%, rgba(12,26,50,1) 100%);
-  border: 1px solid #1e293b;
+  background: radial-gradient(circle, rgba(42,31,21,1) 0%, rgba(26,20,16,1) 100%);
+  border: 1px solid #3d2817;
   overflow: hidden;
   position: relative;
 }
@@ -144,14 +156,14 @@ const steps = ref([
 .hero-title {
   font-size: 3.2rem;
   font-weight: 800;
-  background: -webkit-linear-gradient(45deg, #a78bfa, #38bdf8);
+  background: -webkit-linear-gradient(45deg, #FFD700, #E0BFB8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0 0 1rem 0;
 }
 .hero-subtitle {
   font-size: 1.2rem;
-  color: #94a3b8;
+  color: #c9a87c;
   margin-bottom: 2.5rem;
   max-width: 600px;
   margin-left: auto;
@@ -166,7 +178,7 @@ const steps = ref([
   text-align: center;
   font-size: 2.2rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #FFD700;
   margin: 4rem 0 2.5rem 0;
   position: relative;
   display: flex;
@@ -176,14 +188,14 @@ const steps = ref([
 .section-title span {
   position: relative;
   padding: 0 20px;
-  background-color: #082a42; /* 与主背景色相同，制造断线效果 */
+  background-color: #0f0c0a;
 }
 .section-title::before {
   content: '';
   position: absolute;
   width: 30%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #1e293b, transparent);
+  background: linear-gradient(90deg, transparent, #3d2817, transparent);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -192,8 +204,8 @@ const steps = ref([
 
 /* --- Philosophy Section --- */
 .philosophy-card {
-  background-color: #0c1a32;
-  border: 1px solid #1e293b;
+  background-color: #1a1410;
+  border: 1px solid #3d2817;
   border-radius: 12px;
   padding: 2rem;
   text-align: center;
@@ -201,16 +213,16 @@ const steps = ref([
 }
 .philosophy-icon {
   font-size: 2.5rem;
-  color: #87cefa;
+  color: #FFD700;
   margin-bottom: 1rem;
 }
 .philosophy-card h3 {
-  color: #e2e8f0;
+  color: #E0BFB8;
   font-size: 1.3rem;
   margin: 0 0 1rem 0;
 }
 .philosophy-card p {
-  color: #94a3b8;
+  color: #c9a87c;
   line-height: 1.7;
 }
 
@@ -219,19 +231,17 @@ const steps = ref([
   text-align: center;
   max-width: 800px;
   margin: 0 auto 2.5rem auto;
-  color: #b0c4de;
+  color: #c9a87c;
   font-size: 1.1rem;
   line-height: 1.8;
 }
 
 .models-grid {
   display: grid;
-  /* 默认是单列 */
-  grid-template-columns: repeat(1, 1fr); 
+  grid-template-columns: repeat(1, 1fr);
   gap: 1.5rem;
 }
 
-/* 在中等屏幕及以上 (>=768px)，变为两列 */
 @media (min-width: 768px) {
   .models-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -239,8 +249,8 @@ const steps = ref([
 }
 
 .model-intro-card {
-  background-color: #0c1a32;
-  border: 1px solid #1e293b;
+  background-color: #1a1410;
+  border: 1px solid #3d2817;
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -248,7 +258,7 @@ const steps = ref([
 .model-intro-card:hover {
   transform: scale(1.03);
   box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-  border-color: #409eff;
+  border-color: #FFD700;
 }
 
 .model-card-header {
@@ -266,15 +276,15 @@ const steps = ref([
   left: 0;
   right: 0;
   padding: 1rem;
-  background: linear-gradient(to top, rgba(12, 26, 50, 0.9) 0%, transparent 100%);
+  background: linear-gradient(to top, rgba(26, 20, 16, 0.9) 0%, transparent 100%);
 }
 .model-name-overlay h3 {
   margin: 0;
-  color: #fff;
+  color: #FFD700;
   font-size: 1.5rem;
 }
 .model-name-overlay span {
-  color: #87cefa;
+  color: #E0BFB8;
   font-size: 0.9rem;
   font-weight: bold;
 }
@@ -283,7 +293,7 @@ const steps = ref([
   padding: 1.5rem;
 }
 .model-card-body p {
-  color: #b0c4de;
+  color: #c9a87c;
   line-height: 1.7;
   margin: 0;
 }
@@ -302,8 +312,8 @@ const steps = ref([
 .getting-started-step {
   display: flex;
   align-items: flex-start;
-  background-color: #0c1a32;
-  border: 1px solid #1e293b;
+  background-color: #1a1410;
+  border: 1px solid #3d2817;
   border-radius: 10px;
   padding: 1.5rem;
   gap: 1.5rem;
@@ -313,8 +323,8 @@ const steps = ref([
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: #1e293b;
-  color: #87cefa;
+  background-color: #3d2817;
+  color: #FFD700;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -323,12 +333,12 @@ const steps = ref([
 }
 .step-content h4 {
   margin: 0 0 0.5rem 0;
-  color: #e2e8f0;
+  color: #E0BFB8;
   font-size: 1.2rem;
 }
 .step-content p {
   margin: 0;
-  color: #94a3b8;
+  color: #c9a87c;
   line-height: 1.7;
 }
 </style>

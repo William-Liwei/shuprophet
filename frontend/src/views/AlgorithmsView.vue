@@ -105,7 +105,7 @@
 import { ref } from 'vue';
 
 // 当前激活的标签页名称
-const activeAlgorithm = ref('TimeFlowDiffuser');
+const activeAlgorithm = ref('ScatterFusion');
 
 // BibTeX 弹窗相关状态
 const dialogVisible = ref(false);
@@ -114,6 +114,44 @@ const currentAlgoName = ref('');
 
 // --- 更新后的算法数据 ---
 const algorithms = ref([
+  {
+    name: 'ScatterFusion',
+    coreIdea: '一个创新的层级散射变换框架，通过协同整合散射变换与层级注意力机制，实现鲁棒的时间序列预测。该框架能够提取多尺度不变特征，同时捕捉局部和全局模式，有效应对复杂时间依赖关系的挑战。',
+    innovations: [
+      '层级散射变换模块(HSTM)：提取具有数学可证明性质的多尺度不变特征。',
+      '尺度自适应特征增强(SAFE)：动态调整不同尺度特征的重要性。',
+      '多分辨率时序注意力(MRTA)：在不同时间跨度上建模依赖关系。',
+      '趋势-季节-残差(TSR)分解引导的结构感知损失函数，增强结构化预测精度。'
+    ],
+    paperLink: null,
+    githubLink: null,
+    imageUrl: 'https://www.weili.space/about/images/scatterfusion.png',
+    bibtex: `@inproceedings{li2026scatterfusion,
+  title={ScatterFusion: A Hierarchical Scattering Transform Framework for Enhanced Time Series Forecasting},
+  author={Li, Wei},
+  booktitle={IEEE International Conference on Acoustics, Speech, and Signal Processing},
+  year={2026}
+}`
+  },
+  {
+    name: 'AWGFormer',
+    coreIdea: '一个新颖的架构，将自适应小波分解与跨尺度注意力机制相结合，用于增强多变量时间序列预测。该方法能够在保持计算效率的同时，捕捉多个时间尺度上的模式。',
+    innovations: [
+      '自适应小波分解模块(AWDM)：基于信号特征动态选择最优小波基和分解层级。',
+      '跨尺度特征融合(CSFF)：通过可学习的耦合矩阵捕捉不同频带之间的交互。',
+      '频率感知多头注意力(FAMA)：根据频率选择性对注意力头进行加权。',
+      '层级预测网络(HPN)：在多个分辨率上生成预测后进行重构。'
+    ],
+    paperLink: null,
+    githubLink: null,
+    imageUrl: 'https://www.weili.space/about/images/awgformer.png',
+    bibtex: `@inproceedings{li2026awgformer,
+  title={AWGFormer: Adaptive Wavelet-Guided Transformer for Multi-resolution Time Series Forecasting},
+  author={Li, Wei},
+  booktitle={IEEE International Conference on Acoustics, Speech, and Signal Processing},
+  year={2026}
+}`
+  },
   {
     name: 'TimeFlowDiffuser',
     coreIdea: '引入一种新颖的、专为时序预测设计的层级式扩散模型框架。它通过自适应上下文采样和多尺度时间分辨率处理，有效解决了传统模型在多步长预测中的局限性，尤其在长周期预测任务上表现卓越。',
@@ -218,29 +256,29 @@ const showBibtex = (algo) => {
 
 /* 深度选择器，修改Element Plus组件的内部样式 */
 :deep(.el-tabs__header) {
-  background-color: #0c1a32;
-  border-bottom: 1px solid #1e293b;
+  background-color: #1a1410;
+  border-bottom: 1px solid #3d2817;
 }
 :deep(.el-tabs__nav-wrap) {
   border-radius: 8px 8px 0 0;
 }
 :deep(.el-tabs__item) {
-  color: #a6b0c3;
+  color: #c9a87c;
 }
 :deep(.el-tabs__item.is-active) {
-  background-color: #1e293b !important;
-  color: #ffffff !important;
+  background-color: #3d2817 !important;
+  color: #FFD700 !important;
 }
 :deep(.el-tabs__content) {
   padding: 24px;
-  background-color: #0c1a32;
+  background-color: #1a1410;
 }
 
 .algorithm-content h3 {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #87cefa;
+  color: #FFD700;
   font-size: 1.2rem;
   margin-top: 0;
   margin-bottom: 1rem;
@@ -248,7 +286,7 @@ const showBibtex = (algo) => {
 
 .algorithm-content p, .algorithm-content li {
   line-height: 1.8;
-  color: #b0c4de;
+  color: #c9a87c;
   font-size: 1rem;
 }
 
