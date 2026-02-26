@@ -15,5 +15,9 @@ COPY --from=frontend /src/frontend/dist ./dist
 COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
+RUN mkdir -p /src/backend/avatars
+
+VOLUME ["/src/backend/avatars"]
+
 EXPOSE 8080
 CMD ["./entrypoint.sh"]

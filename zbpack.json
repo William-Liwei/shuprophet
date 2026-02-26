@@ -1,0 +1,7 @@
+{
+  "volumes": [
+    {
+      "path": "/src/backend/avatars"
+    }
+  ]
+}
