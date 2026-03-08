@@ -29,3 +29,6 @@ yarn-error.log*
 .vscode
 .claude
 read.txt
+/paper/
+/ts-vision/
+plan.md
