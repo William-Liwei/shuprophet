@@ -121,6 +121,9 @@
       <el-button size="small" type="success" plain @click="shareToCommmunity">
         分享对话到社区
       </el-button>
+      <el-button size="small" type="primary" plain @click="exportReport">
+        <el-icon><Download /></el-icon> 导出报告
+      </el-button>
     </div>
 
     <!-- COMBO效果 - 传送到body确保在最上层 -->
@@ -140,7 +143,7 @@
 import { ref, nextTick, onMounted, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { marked } from 'marked';
-import { UploadFilled } from '@element-plus/icons-vue'
+import { UploadFilled, Download } from '@element-plus/icons-vue'
 import request from '@/utils/request';
 import { useAuthStore } from '@/stores/auth';
 
@@ -395,6 +398,35 @@ const shareWebsite = async () => {
     fetchCredits();
   } catch {
     ElMessage.error('操作失败');
+  }
+};
+
+// 导出报告
+const exportReport = async () => {
+  try {
+    const jsPDF = (await import('jspdf')).default;
+    const html2canvas = (await import('html2canvas')).default;
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    pdf.setFontSize(24);
+    pdf.text('时序预测分析报告', 105, 60, { align: 'center' });
+    pdf.setFontSize(12);
+    pdf.text(`生成日期: ${new Date().toLocaleDateString('zh-CN')}`, 105, 80, { align: 'center' });
+    pdf.text('鼠先知智能预测平台', 105, 90, { align: 'center' });
+
+    const chartMsg = messages.value.find(m => m.chartData);
+    if (chartMsg) {
+      pdf.addPage();
+      pdf.setFontSize(16);
+      pdf.text('预测结果', 20, 20);
+      pdf.setFontSize(10);
+      pdf.text('智能预测引擎基于数据特征自动路由选择最优算法', 20, 140);
+    }
+
+    pdf.save(`预测报告_${Date.now()}.pdf`);
+    ElMessage.success('报告导出成功');
+  } catch {
+    ElMessage.error('报告导出失败');
   }
 };
 

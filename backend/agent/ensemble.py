@@ -3,6 +3,9 @@
 
 Strategy: conservative adaptive selection with robustness prior.
 ARIMA is the default; only override when CV evidence is overwhelming.
+
+智能预测引擎：基于数据特征自动路由选择最优算法
+当前使用统计模型，预留深度学习模型接口
 """
 
 import numpy as np
@@ -10,12 +13,21 @@ from .tools.forecasters import (
     arima_forecast, ets_forecast, theta_forecast, linear_forecast
 )
 
+# 当前使用的统计模型
 FORECASTERS = [
     ("arima", arima_forecast),
     ("ets", ets_forecast),
     ("theta", theta_forecast),
     ("linear", linear_forecast),
 ]
+
+# 预留深度学习模型接口（未来扩展）
+# DL_FORECASTERS = [
+#     ("awgformer", awgformer_forecast),
+#     ("scatterfusion", scatterfusion_forecast),
+#     ("swift", swift_forecast),
+#     # 等等...
+# ]
 
 DEFAULT_MODEL = "arima"
 

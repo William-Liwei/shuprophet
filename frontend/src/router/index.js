@@ -29,6 +29,12 @@ const router = createRouter({
       meta: { title: '算法文库' }
     },
     {
+      path: '/solutions',
+      name: 'solutions',
+      component: () => import('../views/SolutionsView.vue'),
+      meta: { title: '解决方案' }
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue'),

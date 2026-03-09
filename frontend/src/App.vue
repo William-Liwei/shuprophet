@@ -36,6 +36,10 @@
           <el-icon><Cpu /></el-icon>
           <span>算法文库</span>
         </el-menu-item>
+        <el-menu-item index="/solutions">
+          <el-icon><Briefcase /></el-icon>
+          <span>解决方案</span>
+        </el-menu-item>
         <el-menu-item index="/about">
           <el-icon><InfoFilled /></el-icon>
           <span>关于项目</span>
@@ -96,7 +100,7 @@
 
 <script setup>
 import { onMounted, ref, computed } from 'vue';
-import { Menu, TrendCharts, House, DataAnalysis, Cpu, InfoFilled, ChatDotRound } from '@element-plus/icons-vue';
+import { Menu, TrendCharts, House, DataAnalysis, Cpu, InfoFilled, ChatDotRound, Briefcase } from '@element-plus/icons-vue';
 import { useAuthStore } from '@/stores/auth';
 import logoUrl from '@/assets/logo.png';
 

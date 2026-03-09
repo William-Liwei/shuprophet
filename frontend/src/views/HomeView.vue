@@ -4,8 +4,8 @@
     <!-- Hero Section -->
     <section class="hero-section">
       <img src="@/assets/logo.png" alt="Project Logo" class="home-logo">
-      <p class="hero-tagline">新一代时序智能预测与决策平台</p>
-      <p class="hero-sub">Powered by LLM Agent &middot; Multi-Model Ensemble &middot; Deep Reasoning</p>
+      <p class="hero-tagline">学术驱动的智能时序预测平台</p>
+      <p class="hero-sub">基于6篇CCF论文 &middot; 零代码门槛 &middot; 秒级专业预测</p>
     </section>
 
     <!-- Stats Bar -->
@@ -43,9 +43,14 @@
 
     <!-- CTA -->
     <section class="cta-section">
-      <el-button type="primary" size="large" @click="$router.push('/app')" round class="cta-btn">
-        进入数据探索 <el-icon class="el-icon--right"><ArrowRight /></el-icon>
-      </el-button>
+      <div class="cta-buttons">
+        <el-button type="primary" size="large" @click="$router.push('/agent')" round class="cta-btn">
+          免费试用 <el-icon class="el-icon--right"><ArrowRight /></el-icon>
+        </el-button>
+        <el-button size="large" @click="$router.push('/algorithms')" round class="cta-btn-secondary">
+          查看论文
+        </el-button>
+      </div>
       <p class="cta-hint">Wei Li &middot; Zixin Wang</p>
     </section>
 
@@ -64,28 +69,28 @@ const stats = [
 
 const features = [
   {
+    icon: '🏢',
+    title: '新能源预测',
+    desc: '风电/光伏功率预测，助力双碳战略，预测误差<5%',
+    tag: '商业场景',
+  },
+  {
+    icon: '🏭',
+    title: '工业物联网',
+    desc: '设备预测性维护，提前3-7天预警故障，维护成本降低30%',
+    tag: '商业场景',
+  },
+  {
+    icon: '📦',
+    title: '供应链管理',
+    desc: '销量预测与动态库存优化，库存周转率提升25%',
+    tag: '商业场景',
+  },
+  {
     icon: '🔬',
-    title: '科研数据探索',
-    desc: '多模型对比可视化，自动计算 MAE/MSE 指标，一键加载标准数据集',
-    tag: 'Explorer',
-  },
-  {
-    icon: '⚡',
-    title: '实时智能预测',
-    desc: '上传 CSV 即刻获得 ARIMA + 多模型集成预测，置信区间与趋势分析',
-    tag: 'Predictor',
-  },
-  {
-    icon: '🧠',
-    title: 'AI 智能助理',
-    desc: '基于 LLM Agent 的对话式分析，支持深度推理思考模式与完整推理轨迹展示',
-    tag: 'Agent',
-  },
-  {
-    icon: '📊',
-    title: '统计接地分析',
-    desc: '频域分析、变点检测、平稳性检验、异常检测等 12+ 专业统计工具',
-    tag: 'Tools',
+    title: '前沿算法',
+    desc: '基于6篇CCF会议论文，智能预测引擎自动路由选择最优算法',
+    tag: '技术优势',
   },
 ]
 
@@ -285,7 +290,13 @@ const papers = [
 .cta-section {
   text-align: center;
 }
-.cta-btn {
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.cta-btn, .cta-btn-secondary {
   padding: 12px 36px;
   font-size: 1rem;
   font-weight: 500;
