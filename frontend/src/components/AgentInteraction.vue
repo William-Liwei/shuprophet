@@ -404,26 +404,35 @@ const shareWebsite = async () => {
 // 导出报告
 const exportReport = async () => {
   try {
-    const jsPDF = (await import('jspdf')).default;
     const html2canvas = (await import('html2canvas')).default;
 
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    pdf.setFontSize(24);
-    pdf.text('时序预测分析报告', 105, 60, { align: 'center' });
-    pdf.setFontSize(12);
-    pdf.text(`生成日期: ${new Date().toLocaleDateString('zh-CN')}`, 105, 80, { align: 'center' });
-    pdf.text('鼠先知智能预测平台', 105, 90, { align: 'center' });
+    // 创建报告HTML
+    const reportHTML = `
+      <div style="font-family: Arial, sans-serif; padding: 40px; max-width: 800px;">
+        <h1 style="text-align: center; color: #1d1d1f;">时序预测分析报告</h1>
+        <p style="text-align: center; color: #6e6e73;">生成日期: ${new Date().toLocaleDateString('zh-CN')}</p>
+        <p style="text-align: center; color: #6e6e73;">鼠先知智能预测平台</p>
+        <hr style="margin: 30px 0;">
+        <h2>预测结果</h2>
+        <p>智能预测引擎基于数据特征自动路由选择最优算法</p>
+        <p>包含统计模型与深度学习模型的集成预测</p>
+      </div>
+    `;
 
-    const chartMsg = messages.value.find(m => m.chartData);
-    if (chartMsg) {
-      pdf.addPage();
-      pdf.setFontSize(16);
-      pdf.text('预测结果', 20, 20);
-      pdf.setFontSize(10);
-      pdf.text('智能预测引擎基于数据特征自动路由选择最优算法', 20, 140);
-    }
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = reportHTML;
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-9999px';
+    document.body.appendChild(tempDiv);
 
-    pdf.save(`预测报告_${Date.now()}.pdf`);
+    const canvas = await html2canvas(tempDiv, { scale: 2 });
+    document.body.removeChild(tempDiv);
+
+    const link = document.createElement('a');
+    link.download = `预测报告_${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
     ElMessage.success('报告导出成功');
   } catch {
     ElMessage.error('报告导出失败');
