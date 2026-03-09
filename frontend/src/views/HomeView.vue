@@ -67,7 +67,7 @@ import { ArrowRight } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 // 基准日期：2025年1月1日
-const baseDate = new Date('2025-01-01')
+const baseDate = new Date('2026-02-01')
 const now = new Date()
 const daysPassed = Math.floor((now - baseDate) / (1000 * 60 * 60 * 24))
 
