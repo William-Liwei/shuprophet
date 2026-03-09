@@ -122,7 +122,16 @@ onMounted(() => {
   }
   fetchCredits()
   fetchLogs()
+  refreshUserInfo()
 })
+
+const refreshUserInfo = async () => {
+  try {
+    const res = await request.get('/auth/me')
+    auth.user = res.data.user
+    localStorage.setItem('user', JSON.stringify(auth.user))
+  } catch { /* ignore */ }
+}
 
 const triggerUpload = () => fileRef.value?.click()
 
