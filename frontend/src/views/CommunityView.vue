@@ -67,6 +67,7 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import request from '@/utils/request'
@@ -76,6 +77,7 @@ import PostComposer from '@/components/community/PostComposer.vue'
 import CommentList from '@/components/community/CommentList.vue'
 import SharedConversation from '@/components/community/SharedConversation.vue'
 
+const router = useRouter()
 const auth = useAuthStore()
 const isLoggedIn = computed(() => auth.isLoggedIn)
 const currentUserId = computed(() => auth.user?.id)
