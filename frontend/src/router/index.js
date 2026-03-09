@@ -65,6 +65,12 @@ const router = createRouter({
       meta: { title: '个人中心', requiresAuth: true }
     },
     {
+      path: '/user/:id',
+      name: 'user-profile',
+      component: () => import('../views/UserProfileView.vue'),
+      meta: { title: '用户主页' }
+    },
+    {
       path: '/admin',
       name: 'admin',
       component: () => import('../views/AdminView.vue'),

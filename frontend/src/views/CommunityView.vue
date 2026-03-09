@@ -1,6 +1,12 @@
 <template>
   <div class="community-page">
-    <h1 class="page-title">社区广场</h1>
+    <div class="page-header">
+      <h1 class="page-title">社区广场</h1>
+      <el-radio-group v-model="sortType" @change="fetchPosts">
+        <el-radio-button value="latest">最新</el-radio-button>
+        <el-radio-button value="hot">热门</el-radio-button>
+      </el-radio-group>
+    </div>
 
     <!-- 帖子详情弹窗 -->
     <el-dialog v-model="showDetail" title="帖子详情" width="600px" destroy-on-close>
@@ -18,6 +24,7 @@
           :comments="detailPost.comments || []"
           :show-input="isLoggedIn"
           :current-user-id="currentUserId"
+          :is-admin="isAdmin"
           @add-comment="addComment"
           @delete-comment="deleteComment"
         />
@@ -37,7 +44,7 @@
         :key="p.id"
         :post="p"
         :liked="likedSet.has(p.id)"
-        :can-delete="p.author?.id === currentUserId"
+        :can-delete="p.author?.id === currentUserId || isAdmin"
         @click="openDetail(p.id)"
         @like="toggleLike(p)"
         @delete="deletePost(p.id)"
@@ -72,6 +79,7 @@ import SharedConversation from '@/components/community/SharedConversation.vue'
 const auth = useAuthStore()
 const isLoggedIn = computed(() => auth.isLoggedIn)
 const currentUserId = computed(() => auth.user?.id)
+const isAdmin = computed(() => auth.user?.is_admin)
 
 const posts = ref([])
 const loading = ref(false)
@@ -80,6 +88,7 @@ const total = ref(0)
 const totalPages = ref(0)
 const likedSet = reactive(new Set())
 const composerRef = ref(null)
+const sortType = ref('latest')
 
 const showDetail = ref(false)
 const detailPost = ref(null)
@@ -89,7 +98,9 @@ onMounted(() => fetchPosts())
 const fetchPosts = async () => {
   loading.value = true
   try {
-    const res = await request.get('/community/posts', { params: { page: page.value } })
+    const res = await request.get('/community/posts', {
+      params: { page: page.value, sort: sortType.value }
+    })
     posts.value = res.data.posts
     total.value = res.data.total
     totalPages.value = res.data.pages
@@ -183,6 +194,12 @@ const deleteComment = async (commentId) => {
 </script>
 
 <style scoped>
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
 .login-hint {
   text-align: center;
   padding: 20px;

@@ -68,6 +68,31 @@ def me():
     return jsonify({'user': _user_dict(user)})
 
 
+@auth_bp.route('/verify-admin', methods=['POST'])
+@login_required
+def verify_admin():
+    """验证管理员密码，通过后将当前用户设置为管理员"""
+    from extensions import ADMIN_PASSWORD
+    if not ADMIN_PASSWORD:
+        return jsonify({'error': '管理员功能未启用'}), 403
+
+    data = request.json or {}
+    password = data.get('password', '')
+
+    if password != ADMIN_PASSWORD:
+        return jsonify({'error': '管理员密码错误'}), 401
+
+    user = User.query.get(g.user_id)
+    user.is_admin = True
+    db.session.commit()
+
+    return jsonify({
+        'message': '已获得管理员权限',
+        'user': _user_dict(user)
+    })
+
+
+
 def _user_dict(user):
     return {
         'id': user.id,
@@ -77,5 +102,7 @@ def _user_dict(user):
         'avatar_url': user.avatar_url,
         'bio': user.bio,
         'credits': user.credits,
+        'level': user.level,
+        'is_admin': user.is_admin,
         'created_at': user.created_at.isoformat()
     }

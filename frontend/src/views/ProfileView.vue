@@ -8,7 +8,10 @@
       <div class="profile-header">
         <div class="avatar-section">
           <img :src="user?.avatar_url || '/api/user/avatars/default.png'" class="profile-avatar" @click="triggerUpload" />
+          <div class="level-badge">Lv.{{ user?.level || 1 }}</div>
           <el-button size="small" @click="triggerUpload">更换头像</el-button>
+          <el-button v-if="!user?.is_admin" size="small" type="warning" @click="showAdminDialog = true">成为管理员</el-button>
+          <div v-else class="admin-badge">管理员</div>
           <input ref="fileRef" type="file" accept="image/*" style="display:none" @change="uploadAvatar" />
         </div>
         <div class="info-section">
@@ -76,6 +79,15 @@
         <div v-else class="empty-logs">暂无积分记录</div>
       </div>
     </div>
+
+    <!-- 管理员验证对话框 -->
+    <el-dialog v-model="showAdminDialog" title="管理员验证" width="400px" destroy-on-close>
+      <el-input v-model="adminPassword" type="password" placeholder="请输入管理员密码" show-password />
+      <template #footer>
+        <el-button @click="showAdminDialog = false">取消</el-button>
+        <el-button type="primary" :loading="verifying" @click="verifyAdmin">验证</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -97,6 +109,11 @@ const creditsInfo = ref(null)
 const redeemCode = ref('')
 const redeeming = ref(false)
 const creditLogs = ref([])
+
+// 管理员验证
+const showAdminDialog = ref(false)
+const adminPassword = ref('')
+const verifying = ref(false)
 
 onMounted(() => {
   if (user.value) {
@@ -179,6 +196,26 @@ const formatTime = (iso) => {
   const d = new Date(iso)
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
 }
+
+const verifyAdmin = async () => {
+  if (!adminPassword.value.trim()) {
+    ElMessage.warning('请输入管理员密码')
+    return
+  }
+  verifying.value = true
+  try {
+    const res = await request.post('/auth/verify-admin', { password: adminPassword.value.trim() })
+    auth.user = res.data.user
+    localStorage.setItem('user', JSON.stringify(auth.user))
+    ElMessage.success(res.data.message)
+    adminPassword.value = ''
+    showAdminDialog.value = false
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || '验证失败')
+  } finally {
+    verifying.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -192,6 +229,7 @@ const formatTime = (iso) => {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  position: relative;
 }
 .profile-avatar {
   width: 100px;
@@ -204,6 +242,22 @@ const formatTime = (iso) => {
 }
 .profile-avatar:hover {
   border-color: #409eff;
+}
+.level-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.admin-badge {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
 }
 .info-section {
   flex: 1;

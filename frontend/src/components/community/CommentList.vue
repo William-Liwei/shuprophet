@@ -13,14 +13,14 @@
       </el-button>
     </div>
     <div v-for="c in comments" :key="c.id" class="comment-item">
-      <UserAvatar :src="c.author?.avatar_url" :size="28" />
+      <UserAvatar :src="c.author?.avatar_url" :size="28" class="clickable-avatar" @click="goToUser(c.author?.id)" />
       <div class="comment-body">
         <span class="comment-author">{{ c.author?.nickname || '匿名' }}</span>
         <span class="comment-text">{{ c.content }}</span>
         <div class="comment-meta">
           <span class="comment-time">{{ formatTime(c.created_at) }}</span>
           <span
-            v-if="c.author?.id === currentUserId"
+            v-if="c.author?.id === currentUserId || isAdmin"
             class="comment-delete"
             @click="$emit('delete-comment', c.id)"
           >删除</span>
@@ -33,12 +33,16 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import UserAvatar from '@/components/UserAvatar.vue'
+
+const router = useRouter()
 
 defineProps({
   comments: { type: Array, default: () => [] },
   showInput: { type: Boolean, default: true },
-  currentUserId: { type: Number, default: null }
+  currentUserId: { type: Number, default: null },
+  isAdmin: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['add-comment', 'delete-comment'])
@@ -48,6 +52,10 @@ const submit = () => {
   if (!newComment.value.trim()) return
   emit('add-comment', newComment.value.trim())
   newComment.value = ''
+}
+
+const goToUser = (userId) => {
+  if (userId) router.push(`/user/${userId}`)
 }
 
 const formatTime = (iso) => {
@@ -108,5 +116,12 @@ const formatTime = (iso) => {
   color: #9ca3af;
   padding: 20px 0;
   font-size: 14px;
+}
+.clickable-avatar {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.clickable-avatar:hover {
+  opacity: 0.7;
 }
 </style>
