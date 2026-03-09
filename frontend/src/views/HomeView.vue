@@ -4,7 +4,7 @@
       <div class="hero-bg"></div>
       <div class="hero-content">
         <img src="@/assets/logo.png" alt="鼠先知" class="hero-logo" />
-        <h1 class="hero-title">学术驱动的智能时序预测平台</h1>
+        <h1 class="hero-title">新一代时序智能预测与决策平台</h1>
         <p class="hero-subtitle">基于6篇CCF论文的前沿算法 · 零代码门槛 · 秒级专业预测</p>
         <div class="hero-actions">
           <el-button type="primary" size="large" @click="$router.push('/agent')" round class="btn-primary">
@@ -104,11 +104,9 @@ const papers = [
 }
 
 .hero-logo {
-  max-width: 280px;
+  max-width: 320px;
   height: auto;
-  margin-bottom: 30px;
-  animation: float 3s ease-in-out infinite;
-  filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1));
+  margin-bottom: 40px;
 }
 
 .hero-title {
