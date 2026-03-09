@@ -12,7 +12,7 @@
     <el-dialog v-model="showDetail" title="帖子详情" width="600px" destroy-on-close>
       <div v-if="detailPost">
         <div class="detail-header">
-          <UserAvatar :src="detailPost.author?.avatar_url" :size="40" />
+          <UserAvatar :src="detailPost.author?.avatar_url" :size="40" class="clickable-avatar" @click="goToUser(detailPost.author?.id)" />
           <div class="detail-meta">
             <span class="detail-author">{{ detailPost.author?.nickname }}</span>
             <span class="detail-time">{{ detailPost.created_at }}</span>
@@ -191,6 +191,13 @@ const deleteComment = async (commentId) => {
     ElMessage.error('删除失败')
   }
 }
+
+const goToUser = (userId) => {
+  if (userId) {
+    showDetail.value = false
+    router.push(`/user/${userId}`)
+  }
+}
 </script>
 
 <style scoped>
@@ -246,5 +253,12 @@ const deleteComment = async (commentId) => {
   margin-bottom: 16px;
   white-space: pre-wrap;
   word-break: break-word;
+}
+.clickable-avatar {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.clickable-avatar:hover {
+  opacity: 0.7;
 }
 </style>

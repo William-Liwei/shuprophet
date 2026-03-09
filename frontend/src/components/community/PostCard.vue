@@ -1,7 +1,7 @@
 <template>
   <div class="post-card" @click="$emit('click')">
     <div class="post-header">
-      <UserAvatar :src="post.author?.avatar_url" :size="36" />
+      <UserAvatar :src="post.author?.avatar_url" :size="36" class="clickable-avatar" @click.stop="goToUser(post.author?.id)" />
       <div class="post-meta">
         <span class="post-author">{{ post.author?.nickname || '匿名' }}</span>
         <span class="post-time">{{ formatTime(post.created_at) }}</span>
@@ -30,7 +30,10 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
 import UserAvatar from '@/components/UserAvatar.vue'
+
+const router = useRouter()
 
 defineProps({
   post: { type: Object, required: true },
@@ -39,6 +42,10 @@ defineProps({
 })
 
 defineEmits(['click', 'like', 'delete'])
+
+const goToUser = (userId) => {
+  if (userId) router.push(`/user/${userId}`)
+}
 
 const formatTime = (iso) => {
   if (!iso) return ''
@@ -101,4 +108,11 @@ const formatTime = (iso) => {
   transition: color 0.2s;
 }
 .action-item:hover { color: #1d1d1f; }
+.clickable-avatar {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.clickable-avatar:hover {
+  opacity: 0.7;
+}
 </style>

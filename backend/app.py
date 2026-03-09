@@ -49,6 +49,17 @@ with app.app_context():
     except Exception:
         pass
 
+    # 自动迁移：添加新字段
+    try:
+        db.session.execute(db.text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS avatar_data TEXT'))
+        db.session.execute(db.text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS level INTEGER DEFAULT 1'))
+        db.session.execute(db.text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE'))
+        # 清理可能损坏的 avatar_data
+        db.session.execute(db.text('UPDATE "user" SET avatar_data = NULL WHERE LENGTH(COALESCE(avatar_data, \'\')) > 10000000'))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
 # --- 定义路径 ---
 STATIC_DATA_DIR = 'static_data'
 UPLOADS_DIR = 'uploads'
