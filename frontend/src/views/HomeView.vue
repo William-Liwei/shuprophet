@@ -154,14 +154,15 @@ onMounted(async () => {
 .home-view {
   min-height: 100vh;
   background: #ffffff;
+  margin-top: -20px;
 }
 
 .hero {
   position: relative;
-  padding: 100px 20px 120px;
+  padding: 120px 20px 120px;
   text-align: center;
   overflow: hidden;
-  background: linear-gradient(135deg, #faf8f7 0%, #ffffff 50%, #f9f6f4 100%);
+  background: linear-gradient(180deg, #B8967D 0%, #D4C4B0 40%, #F5F1ED 70%, #ffffff 100%);
 }
 
 .hero-bg {
@@ -327,7 +328,7 @@ onMounted(async () => {
   padding: 80px 20px 100px;
   max-width: 1200px;
   margin: 0 auto;
-  background: linear-gradient(180deg, transparent 0%, rgba(201,160,160,0.05) 100%);
+  background: #ffffff;
 }
 
 .section-title {
