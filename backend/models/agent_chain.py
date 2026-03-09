@@ -151,10 +151,11 @@ def get_conversational_response(user_input: str, session_id: str = "default_sess
     return response
 
 # --- 这部分是从旧代码保留的，用于文件处理完成后生成报告 ---
-def generate_standalone_report(analysis_result: dict) -> str:
+def generate_standalone_report(analysis_result: dict, user_context: str = "") -> str:
     """
     专门用于在文件上传和分析成功后，生成最终的分析报告。
     结合Python统计分析和LLM生成，提供深度洞察。
+    user_context: 用户提供的数据背景描述（如"这是电商销量数据"）
     """
     if "error" in analysis_result:
         return f"### 分析失败\n\n抱歉，我在处理您的数据时遇到了一个问题：\n`{analysis_result['error']}`"
@@ -181,6 +182,8 @@ def generate_standalone_report(analysis_result: dict) -> str:
 
     report_prompt_template = """你是"鼠先知"平台的AI数据分析师。请基于以下分析结果，生成一份专业的数据洞察报告。
 
+{context_instruction}
+
 分析数据：
 - 数据规模：{hist_points}个历史观测点，预测未来{forecast_steps}步
 - 历史均值：{hist_mean}，预测均值：{pred_mean}
@@ -192,7 +195,7 @@ def generate_standalone_report(analysis_result: dict) -> str:
 
 ## 数据概览
 
-简要描述数据的基本特征，包括规模、分布和整体走势。
+简要描述数据的基本特征，包括规模、分布和整体走势。{context_hint}
 
 ## 趋势与模式分析
 
@@ -202,18 +205,29 @@ def generate_standalone_report(analysis_result: dict) -> str:
 
 对比历史均值与预测均值的变化，解读预测结果的含义和可信度。
 
-## 模型推荐
+## 决策建议
 
-基于数据特征推荐最适合的深度学习模型，并简要说明推荐理由。
+{business_hint}
 
 ## 风险提示
 
 基于波动性和异常点情况给出风险提示和建议。"""
 
+    # 根据用户背景定制提示
+    context_instruction = ""
+    context_hint = ""
+    business_hint = "根据预测结果提供可执行的决策建议。"
+
+    if user_context:
+        context_instruction = f"**重要**：用户说明这是{user_context}相关的数据，请在分析中体现这一场景，并给出针对性的决策建议。"
+        context_hint = f"（结合{user_context}场景）"
+        business_hint = f"针对{user_context}场景，根据预测趋势提供具体的决策建议（如资源配置、时机把握、风险对冲等）。"
+
     REPORT_PROMPT = PromptTemplate(
         template=report_prompt_template,
         input_variables=["hist_points", "forecast_steps", "hist_mean", "pred_mean",
-                         "trend", "volatility", "anomaly_count", "model_rec"]
+                         "trend", "volatility", "anomaly_count", "model_rec",
+                         "context_instruction", "context_hint", "business_hint"]
     )
     report_chain = LLMChain(llm=llm, prompt=REPORT_PROMPT)
 
@@ -225,7 +239,10 @@ def generate_standalone_report(analysis_result: dict) -> str:
         "trend": trend,
         "volatility": volatility,
         "anomaly_count": anomaly_count,
-        "model_rec": model_rec
+        "model_rec": model_rec,
+        "context_instruction": context_instruction,
+        "context_hint": context_hint,
+        "business_hint": business_hint
     })
     return response['text']
 

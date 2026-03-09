@@ -275,7 +275,7 @@ def agent_upload_predict():
         try:
             # 1. ARIMA 基础分析
             analysis_result = analyze_and_predict(filepath)
-            report_markdown = generate_standalone_report(analysis_result)
+            report_markdown = generate_standalone_report(analysis_result, user_message)
         except Exception as e:
             return jsonify({"error": f"数据分析失败: {str(e)}"}), 500
 
