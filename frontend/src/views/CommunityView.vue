@@ -149,7 +149,13 @@ const toggleLike = async (post) => {
 const deletePost = async (id) => {
   try {
     await ElMessageBox.confirm('确定删除这条帖子？', '提示')
-    await request.delete(`/community/posts/${id}`)
+    const post = posts.value.find(p => p.id === id)
+    // 管理员删除别人的帖子用管理员接口
+    if (isAdmin.value && post?.author?.id !== currentUserId.value) {
+      await request.delete(`/admin/posts/${id}`)
+    } else {
+      await request.delete(`/community/posts/${id}`)
+    }
     ElMessage.success('已删除')
     fetchPosts()
   } catch { /* cancelled or error */ }
@@ -183,7 +189,13 @@ const addComment = async (content) => {
 
 const deleteComment = async (commentId) => {
   try {
-    await request.delete(`/community/comments/${commentId}`)
+    const comment = detailPost.value.comments.find(c => c.id === commentId)
+    // 管理员删除别人的评论用管理员接口
+    if (isAdmin.value && comment?.author?.id !== currentUserId.value) {
+      await request.delete(`/admin/comments/${commentId}`)
+    } else {
+      await request.delete(`/community/comments/${commentId}`)
+    }
     detailPost.value.comments = detailPost.value.comments.filter(c => c.id !== commentId)
     const p = posts.value.find(x => x.id === detailPost.value.id)
     if (p) p.comment_count = Math.max(0, (p.comment_count || 1) - 1)
