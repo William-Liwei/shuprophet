@@ -242,3 +242,15 @@ def _post_brief(post):
             'avatar_url': author.avatar_url
         } if author else None
     }
+
+
+@community_bp.route('/stats', methods=['GET'])
+def get_stats():
+    """获取社区统计数据"""
+    post_count = Post.query.count()
+    comment_count = Comment.query.count()
+    return jsonify({
+        'posts': post_count,
+        'comments': comment_count,
+        'total': post_count + comment_count
+    })
