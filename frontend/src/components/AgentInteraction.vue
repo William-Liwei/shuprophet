@@ -439,7 +439,7 @@ const exportReport = async () => {
     if (predictionMsg.chartData) {
       const chartElements = document.querySelectorAll('.chart');
       if (chartElements.length > 0) {
-        const chartCanvas = await html2canvas(chartElements[chartElements.length - 1], { scale: 1.5, width: 670 });
+        const chartCanvas = await html2canvas(chartElements[chartElements.length - 1], { scale: 1.2 });
         const placeholder = tempDiv.querySelector('#chart-placeholder');
         if (placeholder) {
           placeholder.style.height = 'auto';
@@ -453,12 +453,12 @@ const exportReport = async () => {
       }
     }
 
-    const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', width: 750 });
+    const canvas = await html2canvas(tempDiv, { scale: 1.2, backgroundColor: '#ffffff', width: 750 });
     document.body.removeChild(tempDiv);
 
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL('image/jpeg', 0.8);
     const pdf = new jsPDF('p', 'mm', [210, (canvas.height * 210) / canvas.width]);
-    pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+    pdf.addImage(imgData, 'JPEG', 0, 0, 210, (canvas.height * 210) / canvas.width);
     pdf.save(`预测报告_${Date.now()}.pdf`);
 
     ElMessage.success('报告导出成功');

@@ -1,5 +1,6 @@
 import os
-from flask import Blueprint, request, jsonify, g, send_from_directory
+import base64
+from flask import Blueprint, request, jsonify, g, send_from_directory, Response
 from werkzeug.utils import secure_filename
 from extensions import db
 from models.db_models import User
@@ -40,20 +41,43 @@ def upload_avatar():
     if file.filename == '' or not _allowed_file(file.filename):
         return jsonify({'error': '不支持的文件格式'}), 400
 
+    # 读取文件并转换为Base64
+    file_data = file.read()
+    base64_data = base64.b64encode(file_data).decode('utf-8')
     ext = file.filename.rsplit('.', 1)[1].lower()
-    filename = f'avatar_{g.user_id}.{ext}'
-    filepath = os.path.join(AVATARS_DIR, secure_filename(filename))
-    file.save(filepath)
 
     user = User.query.get(g.user_id)
-    user.avatar_url = f'/api/user/avatars/{filename}'
+    user.avatar_data = f'data:image/{ext};base64,{base64_data}'
+    user.avatar_url = f'/api/user/avatars/{g.user_id}'
     db.session.commit()
     return jsonify({'avatar_url': user.avatar_url})
 
 
 @user_bp.route('/avatars/<path:filename>', methods=['GET'])
 def serve_avatar(filename):
-    return send_from_directory(AVATARS_DIR, filename)
+    # filename可能是user_id或旧的文件名
+    if filename == 'default.png':
+        # 返回默认头像
+        return send_from_directory(AVATARS_DIR, 'default.png')
+
+    # 尝试从数据库获取
+    try:
+        user_id = int(filename.split('.')[0].replace('avatar_', ''))
+        user = User.query.get(user_id)
+        if user and user.avatar_data:
+            # 解析Base64数据
+            if user.avatar_data.startswith('data:image'):
+                mime_type, data = user.avatar_data.split(';base64,')
+                img_data = base64.b64decode(data)
+                return Response(img_data, mimetype=mime_type.split(':')[1])
+    except:
+        pass
+
+    # 兼容旧的文件系统头像
+    if os.path.exists(os.path.join(AVATARS_DIR, filename)):
+        return send_from_directory(AVATARS_DIR, filename)
+
+    return send_from_directory(AVATARS_DIR, 'default.png')
 
 
 @user_bp.route('/<int:user_id>', methods=['GET'])

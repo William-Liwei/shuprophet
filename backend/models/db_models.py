@@ -10,6 +10,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     nickname = db.Column(db.String(80), default='')
     avatar_url = db.Column(db.String(256), default='/api/user/avatars/default.png')
+    avatar_data = db.Column(db.Text, default='')
     bio = db.Column(db.String(500), default='')
     credits = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
