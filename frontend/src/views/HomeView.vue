@@ -161,7 +161,7 @@ onMounted(async () => {
   padding: 100px 20px 120px;
   text-align: center;
   overflow: hidden;
-  background: linear-gradient(135deg, #fff5f0 0%, #ffffff 50%, #fff1f0 100%);
+  background: linear-gradient(135deg, #faf8f7 0%, #ffffff 50%, #f9f6f4 100%);
 }
 
 .hero-bg {
@@ -171,10 +171,10 @@ onMounted(async () => {
   right: 0;
   bottom: 0;
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(234,88,12,0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(220,38,38,0.08) 0%, transparent 50%),
-    linear-gradient(90deg, rgba(234,88,12,0.03) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(234,88,12,0.03) 1px, transparent 1px);
+    radial-gradient(circle at 20% 30%, rgba(201,160,160,0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(139,105,20,0.08) 0%, transparent 50%),
+    linear-gradient(90deg, rgba(160,130,109,0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(160,130,109,0.04) 1px, transparent 1px);
   background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
   opacity: 1;
   animation: float 20s ease-in-out infinite;
@@ -195,7 +195,7 @@ onMounted(async () => {
 .hero-title {
   font-size: 52px;
   font-weight: 800;
-  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #C9A0A0 0%, #8B6914 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0 0 20px;
@@ -218,31 +218,31 @@ onMounted(async () => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #C9A0A0 0%, #8B6914 100%);
   border: none;
   padding: 14px 40px;
   font-size: 16px;
   font-weight: 600;
-  box-shadow: 0 10px 30px rgba(234,88,12,0.3);
+  box-shadow: 0 10px 30px rgba(139,105,20,0.3);
   transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(234,88,12,0.4);
+  box-shadow: 0 15px 40px rgba(139,105,20,0.4);
 }
 
 .btn-secondary {
   padding: 14px 40px;
   font-size: 16px;
   font-weight: 600;
-  border: 2px solid #ea580c;
-  color: #ea580c;
+  border: 2px solid #A0826D;
+  color: #8B6914;
   transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
-  background: #ea580c;
+  background: #A0826D;
   color: white;
   transform: translateY(-2px);
 }
@@ -251,7 +251,7 @@ onMounted(async () => {
   padding: 60px 20px;
   max-width: 1200px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #C9A0A0 0%, #8B6914 100%);
   border-radius: 20px;
   margin-bottom: 40px;
 }
@@ -301,7 +301,7 @@ onMounted(async () => {
 
 .feature-item:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(234,88,12,0.15);
+  box-shadow: 0 20px 40px rgba(160,130,109,0.15);
 }
 
 .feature-icon {
@@ -327,7 +327,7 @@ onMounted(async () => {
   padding: 80px 20px 100px;
   max-width: 1200px;
   margin: 0 auto;
-  background: linear-gradient(180deg, transparent 0%, rgba(234,88,12,0.02) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(201,160,160,0.05) 100%);
 }
 
 .section-title {
@@ -350,13 +350,13 @@ onMounted(async () => {
   border-radius: 16px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   transition: all 0.3s ease;
-  border: 1px solid rgba(234,88,12,0.1);
+  border: 1px solid rgba(160,130,109,0.15);
 }
 
 .paper-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(234,88,12,0.15);
-  border-color: rgba(234,88,12,0.3);
+  box-shadow: 0 12px 30px rgba(160,130,109,0.2);
+  border-color: rgba(139,105,20,0.4);
 }
 
 .paper-badge {
@@ -413,14 +413,14 @@ onMounted(async () => {
 
 .testimonial-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(234,88,12,0.12);
+  box-shadow: 0 8px 24px rgba(160,130,109,0.15);
 }
 
 .testimonial-avatar {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #C9A0A0 0%, #8B6914 100%);
   color: white;
   display: flex;
   align-items: center;
