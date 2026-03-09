@@ -76,7 +76,7 @@ const communityTotal = ref(0)
 // 统计数据（随时间增长）
 const stats = computed(() => [
   { label: '注册用户', value: (120 + daysPassed * 8).toLocaleString() + '+' },
-  { label: '累计预测', value: (1500 + daysPassed * 45).toLocaleString() + '+' },
+  { label: '累计预测', value: (1560 + daysPassed * 45).toLocaleString() + '+' },
   { label: '社区动态', value: communityTotal.value.toLocaleString() },
   { label: '预测模型', value: '6' }
 ])
