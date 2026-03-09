@@ -162,7 +162,7 @@ onMounted(async () => {
   padding: 120px 20px 120px;
   text-align: center;
   overflow: hidden;
-  background: linear-gradient(180deg, #B8967D 0%, #D4C4B0 40%, #F5F1ED 70%, #ffffff 100%);
+  background: #ffffff;
 }
 
 .hero-bg {
@@ -171,14 +171,8 @@ onMounted(async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image:
-    radial-gradient(circle at 20% 30%, rgba(201,160,160,0.12) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(139,105,20,0.08) 0%, transparent 50%),
-    linear-gradient(90deg, rgba(160,130,109,0.04) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(160,130,109,0.04) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-  opacity: 1;
-  animation: float 20s ease-in-out infinite;
+  background: transparent;
+  opacity: 0;
 }
 
 .hero-content {
