@@ -126,3 +126,41 @@ def delete_comment(comment_id):
     db.session.delete(comment)
     db.session.commit()
     return jsonify({'message': '已删除'})
+
+
+# 新增：使用普通用户令牌的管理员删除接口
+from utils.auth_utils import login_required
+from flask import g
+
+@admin_bp.route('/user/posts/<int:post_id>', methods=['DELETE'])
+@login_required
+def user_delete_post(post_id):
+    """用户管理员删除任意帖子（使用普通令牌）"""
+    from models.db_models import User, Post
+    user = User.query.get(g.user_id)
+    if not user or not user.is_admin:
+        return jsonify({'error': '需要管理员权限'}), 403
+
+    post = Post.query.get(post_id)
+    if not post:
+        return jsonify({'error': '帖子不存在'}), 404
+    db.session.delete(post)
+    db.session.commit()
+    return jsonify({'message': '已删除'})
+
+
+@admin_bp.route('/user/comments/<int:comment_id>', methods=['DELETE'])
+@login_required
+def user_delete_comment(comment_id):
+    """用户管理员删除任意评论（使用普通令牌）"""
+    from models.db_models import User, Comment
+    user = User.query.get(g.user_id)
+    if not user or not user.is_admin:
+        return jsonify({'error': '需要管理员权限'}), 403
+
+    comment = Comment.query.get(comment_id)
+    if not comment:
+        return jsonify({'error': '评论不存在'}), 404
+    db.session.delete(comment)
+    db.session.commit()
+    return jsonify({'message': '已删除'})

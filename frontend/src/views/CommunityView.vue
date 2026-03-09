@@ -152,7 +152,7 @@ const deletePost = async (id) => {
     const post = posts.value.find(p => p.id === id)
     // 管理员删除别人的帖子用管理员接口
     if (isAdmin.value && post?.author?.id !== currentUserId.value) {
-      await request.delete(`/admin/posts/${id}`)
+      await request.delete(`/admin/user/posts/${id}`)
     } else {
       await request.delete(`/community/posts/${id}`)
     }
@@ -192,7 +192,7 @@ const deleteComment = async (commentId) => {
     const comment = detailPost.value.comments.find(c => c.id === commentId)
     // 管理员删除别人的评论用管理员接口
     if (isAdmin.value && comment?.author?.id !== currentUserId.value) {
-      await request.delete(`/admin/comments/${commentId}`)
+      await request.delete(`/admin/user/comments/${commentId}`)
     } else {
       await request.delete(`/community/comments/${commentId}`)
     }
