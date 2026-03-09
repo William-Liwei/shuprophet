@@ -411,17 +411,19 @@ const exportReport = async () => {
       return;
     }
 
+    // 渲染markdown
+    const renderedMarkdown = renderMarkdown(predictionMsg.text || '预测分析完成');
+
     // 创建完整报告HTML
     const reportHTML = `
-      <div style="font-family: 'Microsoft YaHei', Arial, sans-serif; padding: 40px; max-width: 800px; background: white;">
+      <div style="font-family: 'Microsoft YaHei', Arial, sans-serif; padding: 40px; max-width: 750px; background: white;">
         <div style="text-align: center; margin-bottom: 40px;">
           <h1 style="font-size: 28px; color: #1d1d1f; margin-bottom: 10px;">时序预测分析报告</h1>
           <p style="font-size: 14px; color: #6e6e73;">生成日期: ${new Date().toLocaleDateString('zh-CN')}</p>
           <p style="font-size: 12px; color: #86868b;">鼠先知智能预测平台</p>
         </div>
         <div style="border-top: 2px solid #f5f5f7; padding-top: 30px; margin-bottom: 30px;">
-          <h2 style="font-size: 18px; color: #1d1d1f; margin-bottom: 15px;">预测分析</h2>
-          <div style="font-size: 13px; color: #1d1d1f; line-height: 1.8; white-space: pre-wrap;">${predictionMsg.text || '预测分析完成'}</div>
+          <div style="font-size: 13px; color: #1d1d1f; line-height: 1.8;">${renderedMarkdown}</div>
         </div>
         ${predictionMsg.chartData ? '<div style="margin: 30px 0;"><h2 style="font-size: 18px; color: #1d1d1f; margin-bottom: 15px;">预测图表</h2><div id="chart-placeholder" style="height: 300px; background: #f5f5f7; border-radius: 8px;"></div></div>' : ''}
         <div style="margin-top: 30px; padding: 15px; background: #f5f5f7; border-radius: 8px;">
@@ -450,17 +452,33 @@ const exportReport = async () => {
       }
     }
 
-    const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', width: 800 });
+    const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', width: 750 });
     document.body.removeChild(tempDiv);
 
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    const pdfWidth = 210;
+    const pdfHeight = 297;
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // 添加第一页
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+
+    // 如果内容超过一页，添加更多页
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+    }
+
     pdf.save(`预测报告_${Date.now()}.pdf`);
-
     ElMessage.success('报告导出成功');
   } catch (err) {
     console.error(err);
