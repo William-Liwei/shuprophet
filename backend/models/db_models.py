@@ -13,6 +13,8 @@ class User(db.Model):
     avatar_data = db.Column(db.Text, nullable=True)
     bio = db.Column(db.String(500), default='')
     credits = db.Column(db.Integer, default=0)
+    level = db.Column(db.Integer, default=1)
+    is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     posts = db.relationship('Post', backref='author', lazy='dynamic')

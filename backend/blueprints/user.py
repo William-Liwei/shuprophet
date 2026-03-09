@@ -15,6 +15,28 @@ if not os.path.exists(AVATARS_DIR):
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 
+def _calculate_level(credits):
+    """根据积分计算用户等级"""
+    if credits < 100:
+        return 1
+    elif credits < 500:
+        return 2
+    elif credits < 1500:
+        return 3
+    elif credits < 3000:
+        return 4
+    else:
+        return 5
+
+
+def _update_user_level(user):
+    """更新用户等级"""
+    new_level = _calculate_level(user.credits)
+    if user.level != new_level:
+        user.level = new_level
+        db.session.commit()
+
+
 def _allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -85,7 +107,28 @@ def get_user_public(user_id):
     user = User.query.get(user_id)
     if not user:
         return jsonify({'error': '用户不存在'}), 404
-    return jsonify({'user': _pub_user(user)})
+
+    # 获取用户发帖历史
+    from models.db_models import Post, PostLike
+    posts = Post.query.filter_by(user_id=user_id).order_by(Post.created_at.desc()).limit(20).all()
+    post_list = []
+    for p in posts:
+        like_count = PostLike.query.filter_by(post_id=p.id).count()
+        comment_count = p.comments.count()
+        post_list.append({
+            'id': p.id,
+            'content': p.content[:100] + ('...' if len(p.content) > 100 else ''),
+            'like_count': like_count,
+            'comment_count': comment_count,
+            'created_at': p.created_at.isoformat()
+        })
+
+    user_data = _pub_user(user)
+    user_data['level'] = user.level
+    user_data['posts'] = post_list
+    user_data['post_count'] = Post.query.filter_by(user_id=user_id).count()
+
+    return jsonify({'user': user_data})
 
 
 def _pub_user(user):

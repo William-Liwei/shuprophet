@@ -11,22 +11,38 @@ community_bp = Blueprint('community', __name__, url_prefix='/api/community')
 def list_posts():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
+    sort = request.args.get('sort', 'latest')
     per_page = min(per_page, 50)
 
-    pagination = Post.query.order_by(Post.created_at.desc()).paginate(
-        page=page, per_page=per_page, error_out=False
-    )
+    if sort == 'hot':
+        # 热门排序：按点赞数+评论数排序
+        all_posts = Post.query.all()
+        posts_with_score = []
+        for p in all_posts:
+            score = PostLike.query.filter_by(post_id=p.id).count() * 2 + p.comments.count()
+            posts_with_score.append((p, score))
+        posts_with_score.sort(key=lambda x: x[1], reverse=True)
 
-    posts = []
-    for p in pagination.items:
-        posts.append(_post_brief(p))
+        total = len(posts_with_score)
+        start = (page - 1) * per_page
+        end = start + per_page
+        items = [p for p, _ in posts_with_score[start:end]]
+        pages = (total + per_page - 1) // per_page
 
-    return jsonify({
-        'posts': posts,
-        'total': pagination.total,
-        'page': page,
-        'pages': pagination.pages
-    })
+        posts = [_post_brief(p) for p in items]
+        return jsonify({'posts': posts, 'total': total, 'page': page, 'pages': pages})
+    else:
+        # 最新排序
+        pagination = Post.query.order_by(Post.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        posts = [_post_brief(p) for p in pagination.items]
+        return jsonify({
+            'posts': posts,
+            'total': pagination.total,
+            'page': page,
+            'pages': pagination.pages
+        })
 
 
 @community_bp.route('/posts', methods=['POST'])

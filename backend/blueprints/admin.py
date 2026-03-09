@@ -100,3 +100,29 @@ def delete_code(code_id):
     db.session.delete(c)
     db.session.commit()
     return jsonify({'message': '已删除'})
+
+
+@admin_bp.route('/posts/<int:post_id>', methods=['DELETE'])
+@_admin_required
+def delete_post(post_id):
+    """管理员删除任意帖子。"""
+    from models.db_models import Post
+    post = Post.query.get(post_id)
+    if not post:
+        return jsonify({'error': '帖子不存在'}), 404
+    db.session.delete(post)
+    db.session.commit()
+    return jsonify({'message': '已删除'})
+
+
+@admin_bp.route('/comments/<int:comment_id>', methods=['DELETE'])
+@_admin_required
+def delete_comment(comment_id):
+    """管理员删除任意评论。"""
+    from models.db_models import Comment
+    comment = Comment.query.get(comment_id)
+    if not comment:
+        return jsonify({'error': '评论不存在'}), 404
+    db.session.delete(comment)
+    db.session.commit()
+    return jsonify({'message': '已删除'})
