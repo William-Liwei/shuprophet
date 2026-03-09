@@ -75,8 +75,8 @@ const communityTotal = ref(0)
 
 // 统计数据（随时间增长）
 const stats = computed(() => [
-  { label: '注册用户', value: (120 + daysPassed * 8).toLocaleString() + '+' },
-  { label: '累计预测', value: (1560 + daysPassed * 45).toLocaleString() + '+' },
+  { label: '注册用户', value: (120 + daysPassed * 3).toLocaleString() + '+' },
+  { label: '累计预测', value: (1560 + daysPassed * 17).toLocaleString() + '+' },
   { label: '社区动态', value: communityTotal.value.toLocaleString() },
   { label: '预测模型', value: '6' }
 ])
@@ -105,8 +105,8 @@ const testimonials = [
     text: '平台的用户日活预测准确率很高，帮助我们优化了服务器调度策略，减少了损失。'
   },
   {
-    avatar: '冯',
-    name: '冯博士',
+    avatar: '李',
+    name: '李博士',
     title: '某高校 时序分析研究员',
     text: '网站上的模型对比功能非常实用，让我快速验证了新算法的效果，节省了大量时间。'
   },
