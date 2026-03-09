@@ -85,6 +85,7 @@ const papers = [
   padding: 100px 20px 120px;
   text-align: center;
   overflow: hidden;
+  background: #ffffff;
 }
 
 .hero-bg {
@@ -93,8 +94,8 @@ const papers = [
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  opacity: 0.03;
+  background: transparent;
+  opacity: 0;
 }
 
 .hero-content {

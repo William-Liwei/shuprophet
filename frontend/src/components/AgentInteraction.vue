@@ -404,19 +404,16 @@ const exportReport = async () => {
     const jsPDF = (await import('jspdf')).default;
     const html2canvas = (await import('html2canvas')).default;
 
-    // 找到最近的预测消息
     const predictionMsg = messages.value.slice().reverse().find(m => m.chartData || m.isReport);
     if (!predictionMsg) {
       ElMessage.warning('暂无预测结果可导出');
       return;
     }
 
-    // 渲染markdown
     const renderedMarkdown = renderMarkdown(predictionMsg.text || '预测分析完成');
 
-    // 创建完整报告HTML
     const reportHTML = `
-      <div style="font-family: 'Microsoft YaHei', Arial, sans-serif; padding: 40px; max-width: 750px; background: white;">
+      <div style="font-family: 'Microsoft YaHei', Arial, sans-serif; padding: 40px; width: 750px; background: white;">
         <div style="text-align: center; margin-bottom: 40px;">
           <h1 style="font-size: 28px; color: #1d1d1f; margin-bottom: 10px;">时序预测分析报告</h1>
           <p style="font-size: 14px; color: #6e6e73;">生成日期: ${new Date().toLocaleDateString('zh-CN')}</p>
@@ -425,7 +422,7 @@ const exportReport = async () => {
         <div style="border-top: 2px solid #f5f5f7; padding-top: 30px; margin-bottom: 30px;">
           <div style="font-size: 13px; color: #1d1d1f; line-height: 1.8;">${renderedMarkdown}</div>
         </div>
-        ${predictionMsg.chartData ? '<div style="margin: 30px 0;"><h2 style="font-size: 18px; color: #1d1d1f; margin-bottom: 15px;">预测图表</h2><div id="chart-placeholder" style="height: 300px; background: #f5f5f7; border-radius: 8px;"></div></div>' : ''}
+        ${predictionMsg.chartData ? '<div style="margin: 30px 0;"><h2 style="font-size: 18px; color: #1d1d1f; margin-bottom: 15px;">预测图表</h2><div id="chart-placeholder" style="width: 100%; height: 300px; background: #f5f5f7; border-radius: 8px;"></div></div>' : ''}
         <div style="margin-top: 30px; padding: 15px; background: #f5f5f7; border-radius: 8px;">
           <p style="font-size: 11px; color: #86868b; margin: 0; line-height: 1.6;">智能预测引擎基于数据特征自动路由选择最优算法，包含统计模型与深度学习模型的集成预测。</p>
         </div>
@@ -439,15 +436,19 @@ const exportReport = async () => {
     tempDiv.style.background = 'white';
     document.body.appendChild(tempDiv);
 
-    // 如果有图表，复制图表内容
     if (predictionMsg.chartData) {
       const chartElements = document.querySelectorAll('.chart');
       if (chartElements.length > 0) {
-        const chartCanvas = await html2canvas(chartElements[chartElements.length - 1], { scale: 1.5 });
+        const chartCanvas = await html2canvas(chartElements[chartElements.length - 1], { scale: 1.5, width: 670 });
         const placeholder = tempDiv.querySelector('#chart-placeholder');
         if (placeholder) {
+          placeholder.style.height = 'auto';
           placeholder.innerHTML = '';
-          placeholder.appendChild(chartCanvas);
+          const img = document.createElement('img');
+          img.src = chartCanvas.toDataURL();
+          img.style.width = '100%';
+          img.style.height = 'auto';
+          placeholder.appendChild(img);
         }
       }
     }
@@ -456,29 +457,10 @@ const exportReport = async () => {
     document.body.removeChild(tempDiv);
 
     const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-
-    const pdfWidth = 210;
-    const pdfHeight = 297;
-    const imgWidth = pdfWidth;
-    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    // 添加第一页
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pdfHeight;
-
-    // 如果内容超过一页，添加更多页
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
-    }
-
+    const pdf = new jsPDF('p', 'mm', [210, (canvas.height * 210) / canvas.width]);
+    pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
     pdf.save(`预测报告_${Date.now()}.pdf`);
+
     ElMessage.success('报告导出成功');
   } catch (err) {
     console.error(err);
