@@ -1,10 +1,48 @@
 import json
+from datetime import datetime
 from flask import Blueprint, request, jsonify, g
 from extensions import db
-from models.db_models import User, Post, Comment, PostLike
+from models.db_models import User, Post, Comment, PostLike, CreditLog, DailyUsage
 from utils.auth_utils import login_required
 
 community_bp = Blueprint('community', __name__, url_prefix='/api/community')
+
+DAILY_COMMUNITY_LIMIT = 5
+
+
+def _get_today():
+    return datetime.utcnow().strftime('%Y-%m-%d')
+
+
+def _give_credits(user_id, amount, description):
+    """给用户增加积分，检查每日社区积分上限"""
+    # 检查今日社区积分
+    today = _get_today()
+    today_community = db.session.query(db.func.sum(CreditLog.amount)).filter(
+        CreditLog.user_id == user_id,
+        CreditLog.type == 'community',
+        db.func.date(CreditLog.created_at) == today
+    ).scalar() or 0
+
+    if today_community >= DAILY_COMMUNITY_LIMIT:
+        return False
+
+    # 限制不超过每日上限
+    actual_amount = min(amount, DAILY_COMMUNITY_LIMIT - today_community)
+    if actual_amount <= 0:
+        return False
+
+    user = User.query.get(user_id)
+    if user:
+        user.credits += actual_amount
+        user.total_credits += actual_amount
+        log = CreditLog(user_id=user_id, amount=actual_amount, type='community', description=description)
+        db.session.add(log)
+        # 更新等级
+        from blueprints.credits import _update_user_level
+        _update_user_level(user)
+        return True
+    return False
 
 
 @community_bp.route('/posts', methods=['GET'])
@@ -55,6 +93,7 @@ def create_post():
 
     post = Post(user_id=g.user_id, content=content)
     db.session.add(post)
+    _give_credits(g.user_id, 2, '发布帖子')
     db.session.commit()
     return jsonify({'post': _post_brief(post)}), 201
 
@@ -112,6 +151,7 @@ def add_comment(post_id):
 
     comment = Comment(post_id=post_id, user_id=g.user_id, content=content)
     db.session.add(comment)
+    _give_credits(g.user_id, 1, '发表评论')
     db.session.commit()
 
     author = User.query.get(g.user_id)

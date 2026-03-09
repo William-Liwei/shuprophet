@@ -13,6 +13,39 @@ TASK_REWARDS = {
 }
 
 
+def _calculate_level(total_credits):
+    """根据累计积分计算等级（不会降级）"""
+    if total_credits < 100:
+        return 1
+    elif total_credits < 500:
+        return 2
+    elif total_credits < 1500:
+        return 3
+    elif total_credits < 3000:
+        return 4
+    else:
+        return 5
+
+
+def _update_user_level(user):
+    """更新用户等级，如果升级则给予奖励"""
+    old_level = user.level
+    new_level = _calculate_level(user.total_credits)
+    if new_level > old_level:
+        user.level = new_level
+        # 升级奖励
+        bonus = new_level * 10
+        user.credits += bonus
+        user.total_credits += bonus
+        log = CreditLog(
+            user_id=user.id,
+            amount=bonus,
+            type='level_up',
+            description=f'升级到 Lv.{new_level}，获得奖励'
+        )
+        db.session.add(log)
+
+
 def _get_today():
     return datetime.utcnow().strftime('%Y-%m-%d')
 
@@ -60,6 +93,7 @@ def redeem_code():
 
     user = User.query.get(g.user_id)
     user.credits += code.credits
+    user.total_credits += code.credits
     code.is_used = True
     code.used_by = g.user_id
     code.used_at = datetime.utcnow()
@@ -71,6 +105,7 @@ def redeem_code():
         description=f'兑换码充值: {code_str[:8]}...'
     )
     db.session.add(log)
+    _update_user_level(user)
     db.session.commit()
 
     return jsonify({
@@ -98,6 +133,7 @@ def complete_task():
     reward = TASK_REWARDS[task_type]
     user = User.query.get(g.user_id)
     user.credits += reward
+    user.total_credits += reward
 
     log = CreditLog(
         user_id=g.user_id,
@@ -106,6 +142,7 @@ def complete_task():
         description=f'完成任务: {task_type}'
     )
     db.session.add(log)
+    _update_user_level(user)
     db.session.commit()
 
     return jsonify({
@@ -158,5 +195,6 @@ def check_and_consume_chat(user_id):
         description='智能助理对话消耗'
     )
     db.session.add(log)
+    _update_user_level(user)
     db.session.commit()
     return True, None

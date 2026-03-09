@@ -54,6 +54,9 @@ with app.app_context():
         db.session.execute(db.text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS avatar_data TEXT'))
         db.session.execute(db.text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS level INTEGER DEFAULT 1'))
         db.session.execute(db.text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE'))
+        db.session.execute(db.text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS total_credits INTEGER DEFAULT 0'))
+        # 初始化已有用户的累计积分
+        db.session.execute(db.text('UPDATE "user" SET total_credits = credits WHERE total_credits = 0'))
         # 清理可能损坏的 avatar_data
         db.session.execute(db.text('UPDATE "user" SET avatar_data = NULL WHERE LENGTH(COALESCE(avatar_data, \'\')) > 10000000'))
         db.session.commit()
