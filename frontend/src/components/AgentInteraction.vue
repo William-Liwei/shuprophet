@@ -106,11 +106,8 @@
           @keyup.enter="sendMessage"
           :disabled="isAgentTyping"
           clearable
-        >
-          <template #append>
-            <el-button :icon="UploadFilled" :disabled="isAgentTyping" @click="triggerFileSelect"></el-button>
-          </template>
-        </el-input>
+        />
+        <el-button :icon="UploadFilled" :disabled="isAgentTyping" @click="triggerFileSelect" style="margin-left: 10px;">上传</el-button>
         <el-button type="primary" @click="sendMessage" :disabled="isAgentTyping" style="margin-left: 10px;">发送</el-button>
       </div>
       <input ref="fileInputRef" type="file" accept=".csv" style="display: none" @change="onFileSelected" />
@@ -845,17 +842,6 @@ const getChartOption = (chartData, smartPrediction) => {
   border-radius: 24px;
   padding: 12px 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-.input-area :deep(.el-input-group__append) {
-  background-color: #f5f5f7;
-  border: none;
-  border-radius: 0 24px 24px 0;
-  padding: 0;
-}
-.input-area :deep(.el-input-group__append .el-button) {
-  border-radius: 0 24px 24px 0;
-  border: none;
-  background: transparent;
 }
 .input-area :deep(.el-button) {
   border-radius: 20px;

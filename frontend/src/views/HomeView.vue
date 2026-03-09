@@ -1,21 +1,23 @@
 <template>
   <div class="home-view">
     <section class="hero">
+      <div class="hero-bg"></div>
       <div class="hero-content">
+        <img src="@/assets/logo.png" alt="鼠先知" class="hero-logo" />
         <h1 class="hero-title">学术驱动的智能时序预测平台</h1>
         <p class="hero-subtitle">基于6篇CCF论文的前沿算法 · 零代码门槛 · 秒级专业预测</p>
         <div class="hero-actions">
-          <el-button type="primary" size="large" @click="$router.push('/agent')" round>
+          <el-button type="primary" size="large" @click="$router.push('/agent')" round class="btn-primary">
             免费试用 <el-icon class="el-icon--right"><ArrowRight /></el-icon>
           </el-button>
-          <el-button size="large" @click="$router.push('/algorithms')" round>查看论文</el-button>
+          <el-button size="large" @click="$router.push('/algorithms')" round class="btn-secondary">查看论文</el-button>
         </div>
       </div>
     </section>
 
     <section class="features">
       <div class="feature-grid">
-        <div class="feature-item" v-for="f in features" :key="f.title">
+        <div class="feature-item" v-for="(f, i) in features" :key="f.title" :style="{ animationDelay: `${i * 0.1}s` }">
           <div class="feature-icon">{{ f.icon }}</div>
           <h3>{{ f.title }}</h3>
           <p>{{ f.desc }}</p>
@@ -57,36 +59,74 @@ const papers = [
 </script>
 
 <style scoped>
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
 .home-view {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  background: #ffffff;
 }
 
 .hero {
-  padding: 120px 20px 80px;
+  position: relative;
+  padding: 100px 20px 120px;
   text-align: center;
-  background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(147,51,234,0.05) 100%);
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0.03;
 }
 
 .hero-content {
+  position: relative;
   max-width: 900px;
   margin: 0 auto;
 }
 
+.hero-logo {
+  max-width: 280px;
+  height: auto;
+  margin-bottom: 30px;
+  animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1));
+}
+
 .hero-title {
-  font-size: 48px;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: 52px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin: 0 0 20px;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .hero-subtitle {
   font-size: 18px;
   color: #64748b;
   margin: 0 0 40px;
-  line-height: 1.6;
+  line-height: 1.8;
 }
 
 .hero-actions {
@@ -94,6 +134,36 @@ const papers = [
   gap: 16px;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  padding: 14px 40px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(102,126,234,0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(102,126,234,0.4);
+}
+
+.btn-secondary {
+  padding: 14px 40px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid #667eea;
+  color: #667eea;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
 }
 
 .features {
@@ -105,110 +175,119 @@ const papers = [
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
+  gap: 30px;
 }
 
 .feature-item {
-  padding: 32px;
+  padding: 40px 32px;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.6s ease-out backwards;
 }
 
 .feature-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(102,126,234,0.15);
 }
 
 .feature-icon {
-  font-size: 40px;
-  margin-bottom: 16px;
+  font-size: 48px;
+  margin-bottom: 20px;
 }
 
 .feature-item h3 {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: #0f172a;
-  margin: 0 0 8px;
+  margin: 0 0 12px;
 }
 
 .feature-item p {
   font-size: 14px;
   color: #64748b;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .papers {
-  padding: 80px 20px;
+  padding: 80px 20px 100px;
   max-width: 1200px;
   margin: 0 auto;
+  background: linear-gradient(180deg, transparent 0%, rgba(102,126,234,0.02) 100%);
 }
 
 .section-title {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 36px;
+  font-weight: 800;
   color: #0f172a;
   text-align: center;
-  margin: 0 0 48px;
+  margin: 0 0 50px;
 }
 
 .papers-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  gap: 20px;
 }
 
 .paper-card {
-  padding: 24px;
+  padding: 28px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   transition: all 0.3s ease;
+  border: 1px solid rgba(102,126,234,0.1);
 }
 
 .paper-card:hover {
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(102,126,234,0.15);
+  border-color: rgba(102,126,234,0.3);
 }
 
 .paper-badge {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
   font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  font-weight: 700;
+  margin-bottom: 14px;
 }
 
 .paper-badge.ccfb {
-  background: #fef3c7;
-  color: #92400e;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
 }
 
 .paper-badge.ccfc {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  color: white;
 }
 
 .paper-model {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   color: #0f172a;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .paper-conf {
   font-size: 13px;
   color: #64748b;
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {
   .hero-title {
-    font-size: 32px;
+    font-size: 36px;
   }
   .hero-subtitle {
     font-size: 16px;
+  }
+  .hero-logo {
+    max-width: 200px;
   }
   .feature-grid, .papers-grid {
     grid-template-columns: 1fr;
