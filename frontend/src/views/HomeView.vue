@@ -329,6 +329,8 @@ onMounted(async () => {
 .feature-content {
   position: relative;
   z-index: 2;
+  width: 100%;
+  text-align: center;
 }
 
 .feature-item:hover {
