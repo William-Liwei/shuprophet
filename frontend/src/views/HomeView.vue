@@ -310,6 +310,9 @@ onMounted(async () => {
   animation: fadeInUp 0.6s ease-out backwards;
   position: relative;
   overflow: hidden;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
 }
 
 .feature-item::before {
