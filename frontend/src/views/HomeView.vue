@@ -26,10 +26,12 @@
 
     <section class="features">
       <div class="feature-grid">
-        <div class="feature-item" v-for="(f, i) in features" :key="f.title" :style="{ animationDelay: `${i * 0.1}s` }">
-          <div class="feature-icon">{{ f.icon }}</div>
-          <h3>{{ f.title }}</h3>
-          <p>{{ f.desc }}</p>
+        <div class="feature-item" v-for="(f, i) in features" :key="f.title" :style="{ animationDelay: `${i * 0.1}s`, backgroundImage: `url(${f.bg})` }">
+          <div class="feature-content">
+            <div class="feature-icon">{{ f.icon }}</div>
+            <h3>{{ f.title }}</h3>
+            <p>{{ f.desc }}</p>
+          </div>
         </div>
       </div>
     </section>
@@ -82,10 +84,10 @@ const stats = computed(() => [
 ])
 
 const features = [
-  { icon: '🏢', title: '新能源预测', desc: '风电/光伏功率预测，助力双碳战略' },
-  { icon: '🏭', title: '工业物联网', desc: '设备预测性维护，降低故障停机损失' },
-  { icon: '📦', title: '供应链管理', desc: '销量预测与动态库存优化' },
-  { icon: '🔬', title: '前沿算法', desc: '智能预测引擎自动路由选择最优算法' },
+  { icon: '🏢', title: '新能源预测', desc: '风电/光伏功率预测，助力双碳战略', bg: '/features/energy-bg.png' },
+  { icon: '🏭', title: '工业物联网', desc: '设备预测性维护，降低故障停机损失', bg: '/features/iot-bg.png' },
+  { icon: '📦', title: '供应链管理', desc: '销量预测与动态库存优化', bg: '/features/supply-bg.png' },
+  { icon: '🔬', title: '前沿算法', desc: '智能预测引擎自动路由选择最优算法', bg: '/features/algorithm-bg.png' },
 ]
 
 const papers = [
@@ -121,6 +123,18 @@ const testimonials = [
     name: '卢总',
     title: '某AI开发 供应链负责人',
     text: '针对我们领域用户使用偏好的预测功能让我们的开发效率大幅提升，降低了开发成本。'
+  },
+  {
+    avatar: '赵',
+    name: '赵主管',
+    title: '某能源企业 数据部门',
+    text: '试用了一段时间，预测效果基本符合预期，比之前的方案要方便不少。'
+  },
+  {
+    avatar: '周',
+    name: '周分析师',
+    title: '某咨询公司 项目组',
+    text: '平台功能比较全面，可视化做得不错，给客户做汇报时能直接用。'
   }
 ]
 
@@ -288,10 +302,30 @@ onMounted(async () => {
 .feature-item {
   padding: 40px 32px;
   background: white;
+  background-size: cover;
+  background-position: center;
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.06);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeInUp 0.6s ease-out backwards;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.92);
+  z-index: 1;
+}
+
+.feature-content {
+  position: relative;
+  z-index: 2;
 }
 
 .feature-item:hover {
