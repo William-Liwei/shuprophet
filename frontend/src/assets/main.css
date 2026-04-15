@@ -1,7 +1,9 @@
 /* --- Global Reset & Base --- */
 *, *::before, *::after { box-sizing: border-box; }
 body {
-  background: #F8F9FA;
+  background:
+    radial-gradient(circle at top left, rgba(231, 217, 198, 0.28), transparent 28%),
+    linear-gradient(180deg, #fcfbf8 0%, #ffffff 38%, #fcfaf6 100%);
   color: #1d1d1f;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
   margin: 0;
@@ -21,7 +23,9 @@ body {
 }
 .app-main {
   padding: 40px;
-  background: transparent;
+  background:
+    radial-gradient(circle at top left, rgba(231, 217, 198, 0.28), transparent 28%),
+    linear-gradient(180deg, #fcfbf8 0%, #ffffff 38%, #fcfaf6 100%);
   overflow-y: auto;
 }
 

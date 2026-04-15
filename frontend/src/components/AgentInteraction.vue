@@ -1,9 +1,29 @@
 <template>
   <div class="module-card">
-    <h2 class="module-title">
-      <el-icon><MagicStick /></el-icon>
-      <span>智能助理 SHU Prophet</span>
-    </h2>
+    <div class="agent-header">
+      <h2 class="module-title">
+        <el-icon><MagicStick /></el-icon>
+        <span>智能助理 SHU Prophet</span>
+      </h2>
+      <div class="model-switcher" role="tablist" aria-label="智能助理模式切换">
+        <button
+          type="button"
+          class="model-chip"
+          :class="{ active: assistantMode === 'shu_hero' }"
+          @click="switchAssistantMode('shu_hero')"
+        >
+          鼠大侠
+        </button>
+        <button
+          type="button"
+          class="model-chip"
+          :class="{ active: assistantMode === 'tianyi_kb' }"
+          @click="switchAssistantMode('tianyi_kb')"
+        >
+          天翼云知识库
+        </button>
+      </div>
+    </div>
 
     <!-- 积分信息栏 -->
     <div class="credits-bar" v-if="creditsInfo">
@@ -102,12 +122,19 @@
       <div class="input-row">
         <el-input
           v-model="userInput"
-          :placeholder="pendingFile ? '输入附加说明（如：帮我深度分析一下）...' : '在这里输入消息...'"
+          :placeholder="inputPlaceholder"
           @keyup.enter="sendMessage"
           :disabled="isAgentTyping"
           clearable
         />
-        <el-button :icon="UploadFilled" :disabled="isAgentTyping" @click="triggerFileSelect" style="margin-left: 10px;">上传</el-button>
+        <el-button
+          :icon="UploadFilled"
+          :disabled="isAgentTyping || assistantMode !== 'shu_hero'"
+          @click="triggerFileSelect"
+          style="margin-left: 10px;"
+        >
+          上传
+        </el-button>
         <el-button type="primary" @click="sendMessage" :disabled="isAgentTyping" style="margin-left: 10px;">发送</el-button>
       </div>
       <input ref="fileInputRef" type="file" accept=".csv" style="display: none" @change="onFileSelected" />
@@ -163,6 +190,7 @@ const isAgentTyping = ref(false);
 const chatWindowRef = ref(null);
 const messages = ref([]);
 const sessionId = ref(`session_${Date.now()}_${Math.random()}`);
+const assistantMode = ref('shu_hero');
 const pendingFile = ref(null);
 const fileInputRef = ref(null);
 const isBlinking = ref(false);
@@ -177,6 +205,13 @@ const showRedeemDialog = ref(false);
 const redeemCode = ref('');
 const redeeming = ref(false);
 
+const inputPlaceholder = computed(() => {
+  if (assistantMode.value === 'tianyi_kb') {
+    return '在这里输入消息，体验天翼云知识库...';
+  }
+  return pendingFile.value ? '输入附加说明（如：帮我深度分析一下）...' : '在这里输入消息...';
+});
+
 // --- 生命周期钩子 ---
 onMounted(() => {
   sendMessage('你好', true);
@@ -184,6 +219,20 @@ onMounted(() => {
   fetchCredits();
   window.addEventListener('mousemove', handleMouseMove);
 });
+
+const switchAssistantMode = (mode) => {
+  if (assistantMode.value === mode) return;
+  assistantMode.value = mode;
+  pendingFile.value = null;
+
+  const modeWelcome =
+    mode === 'tianyi_kb'
+      ? '欢迎使用**天翼云知识库**。'
+      : '已切换至**鼠大侠**，继续为你提供正常的智能助理服务。';
+
+  messages.value.push({ sender: 'agent', text: modeWelcome });
+  scrollToBottom();
+};
 
 // 鼠标追踪
 const handleMouseMove = (e) => {
@@ -270,6 +319,15 @@ const sendMessage = async (initialMessage = '', isGreeting = false) => {
   scrollToBottom();
 
   try {
+    if (assistantMode.value === 'tianyi_kb') {
+      await new Promise(resolve => setTimeout(resolve, 350));
+      messages.value.push({
+        sender: 'agent',
+        text: '欢迎使用**天翼云知识库**。'
+      });
+      return;
+    }
+
     if (currentFile) {
       // 文件+文本模式：通过 FormData 发送
       const formData = new FormData();
@@ -322,6 +380,10 @@ const sendMessage = async (initialMessage = '', isGreeting = false) => {
 
 // 文件选择（不自动上传）
 const triggerFileSelect = () => {
+  if (assistantMode.value !== 'shu_hero') {
+    ElMessage.warning('天翼云知识库模式暂不支持 CSV 上传');
+    return;
+  }
   fileInputRef.value?.click();
 };
 
@@ -520,6 +582,53 @@ const getChartOption = (chartData, smartPrediction) => {
 </script>
 
 <style scoped>
+.agent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.agent-header .module-title {
+  margin-bottom: 0;
+}
+
+.model-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(139, 90, 43, 0.12);
+  box-shadow: 0 8px 20px rgba(48, 37, 24, 0.06);
+}
+
+.model-chip {
+  border: none;
+  background: transparent;
+  color: #6e6e73;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.model-chip.active {
+  background: linear-gradient(135deg, #8b5a2b 0%, #b97a45 58%, #d8b28a 100%);
+  color: #fff9f2;
+  box-shadow: 0 8px 18px rgba(139, 90, 43, 0.2);
+}
+
+.model-chip:not(.active):hover {
+  background: rgba(139, 90, 43, 0.08);
+  color: #5e3e20;
+}
+
 .chat-window {
   height: 65vh;
   background-color: #F7F7F8;
@@ -737,6 +846,22 @@ const getChartOption = (chartData, smartPrediction) => {
   gap: 8px;
   margin-top: 8px;
   font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .agent-header {
+    align-items: stretch;
+  }
+
+  .model-switcher {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .model-chip {
+    flex: 1;
+    text-align: center;
+  }
 }
 .badge-engine {
   background: linear-gradient(135deg, #f59e0b, #d97706);
