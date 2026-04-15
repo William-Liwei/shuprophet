@@ -7,7 +7,7 @@
         <h1 class="hero-title">鼠先知 (SHU Prophet)</h1>
         <p class="hero-subtitle">一个集前沿算法、交互验证与实时应用于一体的时序智能决策平台</p>
         <p class="hero-authors">作者：Wei Li, Zixin Wang</p>
-        <el-button type="primary" size="large" round @click="goToExplorer">
+        <el-button type="primary" size="large" round class="hero-cta" @click="goToExplorer">
           <el-icon><DataLine /></el-icon>
           立即开始探索
         </el-button>
@@ -146,8 +146,11 @@ const steps = ref([
   padding: 5rem 2rem;
   margin-bottom: 4rem;
   border-radius: 18px;
-  background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 100%);
-  border: 1px solid rgba(0,0,0,0.08);
+  background:
+    radial-gradient(circle at top left, rgba(255, 250, 243, 0.88) 0%, rgba(255, 250, 243, 0) 38%),
+    linear-gradient(135deg, #f8f1e8 0%, #efe2d1 52%, #dcc3a3 100%);
+  border: 1px solid rgba(139, 90, 43, 0.14);
+  box-shadow: 0 18px 42px rgba(102, 74, 43, 0.08);
   overflow: hidden;
   position: relative;
 }
@@ -180,6 +183,19 @@ const steps = ref([
   font-weight: bold;
 }
 
+.hero-cta {
+  border: none;
+  background: linear-gradient(135deg, #8b5a2b 0%, #b97a45 58%, #d8b28a 100%) !important;
+  color: #fff9f2 !important;
+  box-shadow: 0 14px 30px rgba(139, 90, 43, 0.22);
+}
+
+.hero-cta:hover {
+  background: linear-gradient(135deg, #7b4f25 0%, #ab703f 58%, #cca47b 100%) !important;
+  color: #fffaf4 !important;
+  box-shadow: 0 18px 34px rgba(139, 90, 43, 0.28);
+}
+
 /* --- Section Title --- */
 .section-title {
   text-align: center;
@@ -194,15 +210,19 @@ const steps = ref([
 }
 .section-title span {
   position: relative;
-  padding: 0 20px;
-  background-color: #f5f5f7;
+  z-index: 1;
+  padding: 0 24px;
+  background:
+    radial-gradient(circle at top left, rgba(231, 217, 198, 0.18), transparent 42%),
+    linear-gradient(180deg, #fcfbf8 0%, #ffffff 38%, #fcfaf6 100%);
+  border-radius: 999px;
 }
 .section-title::before {
   content: '';
   position: absolute;
   width: 30%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(95, 67, 38, 0.16), transparent);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

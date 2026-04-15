@@ -3,14 +3,38 @@
     <section class="hero">
       <div class="hero-bg"></div>
       <div class="hero-content">
-        <img src="@/assets/logo.png" alt="鼠先知" class="hero-logo" />
-        <h1 class="hero-title">新一代时序智能预测与决策平台</h1>
-        <p class="hero-subtitle">基于6篇CCF论文的前沿算法 · 零代码门槛 · 秒级专业预测</p>
+        <div
+          ref="logoStageRef"
+          class="hero-brand"
+          @pointerenter="handleLogoPointerEnter"
+          @pointerleave="handleLogoPointerLeave"
+          @pointermove="handleLogoPointerMove"
+        >
+          <canvas ref="logoCanvasRef" class="hero-brand-canvas" aria-hidden="true"></canvas>
+          <div class="hero-brand-copy">
+            <div class="hero-brand-heading">
+              <div class="hero-brand-cn">鼠先知</div>
+              <div class="hero-brand-en">
+                <span>SHU</span>
+                <span>Prophet</span>
+              </div>
+            </div>
+            <p class="hero-brand-tagline">新一代时序智能预测与决策平台</p>
+          </div>
+        </div>
+
+        <h1 class="hero-title">从学术前沿到行业决策的时间序列智能引擎</h1>
+        <p class="hero-subtitle">
+          基于 6 篇 CCF 论文成果构建的预测体系，覆盖多尺度建模、不确定性推断与智能路由，
+          支持零代码实验、多模型对比和秒级专业预测。
+        </p>
         <div class="hero-actions">
           <el-button type="primary" size="large" @click="$router.push('/agent')" round class="btn-primary">
             免费试用 <el-icon class="el-icon--right"><ArrowRight /></el-icon>
           </el-button>
-          <el-button size="large" @click="$router.push('/algorithms')" round class="btn-secondary">查看论文</el-button>
+          <el-button size="large" @click="$router.push('/algorithms')" round class="btn-secondary">
+            查看论文
+          </el-button>
         </div>
       </div>
     </section>
@@ -26,11 +50,16 @@
 
     <section class="features">
       <div class="feature-grid">
-        <div class="feature-item" v-for="(f, i) in features" :key="f.title" :style="{ animationDelay: `${i * 0.1}s`, backgroundImage: `url(${f.bg})` }">
+        <div
+          class="feature-item"
+          v-for="(feature, index) in features"
+          :key="feature.title"
+          :style="{ animationDelay: `${index * 0.1}s`, backgroundImage: `url(${feature.bg})` }"
+        >
           <div class="feature-content">
-            <div class="feature-icon">{{ f.icon }}</div>
-            <h3>{{ f.title }}</h3>
-            <p>{{ f.desc }}</p>
+            <div class="feature-icon">{{ feature.icon }}</div>
+            <h3>{{ feature.title }}</h3>
+            <p>{{ feature.desc }}</p>
           </div>
         </div>
       </div>
@@ -39,10 +68,10 @@
     <section class="papers">
       <h2 class="section-title">学术成果</h2>
       <div class="papers-grid">
-        <div class="paper-card" v-for="p in papers" :key="p.model">
-          <div class="paper-badge" :class="p.rank.toLowerCase().replace('-','')">{{ p.rank }}</div>
-          <div class="paper-model">{{ p.model }}</div>
-          <div class="paper-conf">{{ p.conf }}</div>
+        <div class="paper-card" v-for="paper in papers" :key="paper.model">
+          <div class="paper-badge" :class="paper.rank.toLowerCase().replace('-', '')">{{ paper.rank }}</div>
+          <div class="paper-model">{{ paper.model }}</div>
+          <div class="paper-conf">{{ paper.conf }}</div>
         </div>
       </div>
     </section>
@@ -50,12 +79,12 @@
     <section class="testimonials">
       <h2 class="section-title">用户评价</h2>
       <div class="testimonials-grid">
-        <div class="testimonial-card" v-for="t in testimonials" :key="t.name">
-          <div class="testimonial-avatar">{{ t.avatar }}</div>
-          <p class="testimonial-text">"{{ t.text }}"</p>
+        <div class="testimonial-card" v-for="testimonial in testimonials" :key="testimonial.name">
+          <div class="testimonial-avatar">{{ testimonial.avatar }}</div>
+          <p class="testimonial-text">"{{ testimonial.text }}"</p>
           <div class="testimonial-author">
-            <div class="author-name">{{ t.name }}</div>
-            <div class="author-title">{{ t.title }}</div>
+            <div class="author-name">{{ testimonial.name }}</div>
+            <div class="author-title">{{ testimonial.title }}</div>
           </div>
         </div>
       </div>
@@ -64,30 +93,90 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ArrowRight } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
-// 基准日期：2025年1月1日
+const TAU = Math.PI * 2
+const strandPalette = [
+  {
+    stroke: 'rgba(139, 90, 43, 0.40)',
+    glow: 'rgba(139, 90, 43, 0.22)'
+  },
+  {
+    stroke: 'rgba(210, 180, 140, 0.60)',
+    glow: 'rgba(210, 180, 140, 0.26)'
+  },
+  {
+    stroke: 'rgba(205, 133, 63, 0.32)',
+    glow: 'rgba(205, 133, 63, 0.18)'
+  },
+  {
+    stroke: 'rgba(160, 112, 67, 0.28)',
+    glow: 'rgba(160, 112, 67, 0.16)'
+  }
+]
+
 const baseDate = new Date('2026-02-01')
 const now = new Date()
-const daysPassed = Math.floor((now - baseDate) / (1000 * 60 * 60 * 24))
+const daysPassed = Math.max(0, Math.floor((now - baseDate) / (1000 * 60 * 60 * 24)))
 
 const communityTotal = ref(0)
+const logoStageRef = ref(null)
+const logoCanvasRef = ref(null)
 
-// 统计数据（随时间增长）
+let resizeObserver = null
+let animationFrameId = 0
+let animationStart = 0
+let canvasContext = null
+let canvasWidth = 0
+let canvasHeight = 0
+let hoverBoost = 0
+let flowBoost = 0
+let flowDirection = 1
+let lastPointerMoveTime = 0
+let lastPointerClientX = 0
+let prefersReducedMotion = false
+let strands = []
+
+const pointerState = {
+  active: false,
+  x: 0.5,
+  y: 0.5
+}
+
 const stats = computed(() => [
-  { label: '注册用户', value: (120 + daysPassed * 3).toLocaleString() + '+' },
-  { label: '累计预测', value: (1560 + daysPassed * 17).toLocaleString() + '+' },
+  { label: '注册用户', value: `${(120 + daysPassed * 3).toLocaleString()}+` },
+  { label: '累计预测', value: `${(1560 + daysPassed * 17).toLocaleString()}+` },
   { label: '社区动态', value: communityTotal.value.toLocaleString() },
   { label: '预测模型', value: '6' }
 ])
 
 const features = [
-  { icon: '🏢', title: '新能源预测', desc: '风电/光伏功率预测，助力双碳战略', bg: '/features/energy-bg.png' },
-  { icon: '🏭', title: '工业物联网', desc: '设备预测性维护，降低故障停机损失', bg: '/features/iot-bg.png' },
-  { icon: '📦', title: '供应链管理', desc: '销量预测与动态库存优化', bg: '/features/supply-bg.png' },
-  { icon: '🔬', title: '前沿算法', desc: '智能预测引擎自动路由选择最优算法', bg: '/features/algorithm-bg.png' },
+  {
+    icon: '风',
+    title: '新能源预测',
+    desc: '风电与光伏功率预测，支撑发电调度、消纳分析与双碳场景决策。',
+    bg: '/features/energy-bg.png'
+  },
+  {
+    icon: '工',
+    title: '工业物联网',
+    desc: '面向设备运行信号的异常预警与预测性维护，减少非计划停机损失。',
+    bg: '/features/iot-bg.png'
+  },
+  {
+    icon: '链',
+    title: '供应链管理',
+    desc: '从销量到库存的联动预测，帮助企业优化补货节奏与资源配置。',
+    bg: '/features/supply-bg.png'
+  },
+  {
+    icon: '算',
+    title: '前沿算法引擎',
+    desc: '自动路由最优模型组合，将复杂时序研究能力封装成稳定可用的产品体验。',
+    bg: '/features/algorithm-bg.png'
+  }
 ]
 
 const papers = [
@@ -96,7 +185,7 @@ const papers = [
   { rank: 'CCF-C', conf: 'ICANN 2025', model: 'SWIFT' },
   { rank: 'CCF-C', conf: 'ICIC 2025', model: 'LWSpace' },
   { rank: 'CCF-C', conf: 'ICIC 2025', model: 'EnergyPatchTST' },
-  { rank: 'CCF-C', conf: 'ICANN 2025', model: 'TimeFlowDiffuser' },
+  { rank: 'CCF-C', conf: 'ICANN 2025', model: 'TimeFlowDiffuser' }
 ]
 
 const testimonials = [
@@ -104,46 +193,265 @@ const testimonials = [
     avatar: '张',
     name: '张工',
     title: '某互联网公司 数据分析师',
-    text: '平台的用户日活预测准确率很高，帮助我们优化了服务器调度策略，减少了损失。'
+    text: '平台对用户活跃度的预测相当稳定，帮助我们把资源调度和活动排期做得更准。'
   },
   {
     avatar: '李',
     name: '李博士',
     title: '某高校 时序分析研究员',
-    text: '网站上的模型对比功能非常实用，让我快速验证了新算法的效果，节省了大量时间。'
+    text: '模型对比和可视化很实用，验证新方法时可以快速看出不同架构的优劣。'
   },
   {
     avatar: '王',
     name: '王经理',
-    title: '某外贸企业 运营总监',
-    text: 'AI助理的预测报告专业且易懂，帮助我们提前发现设备异常，避免了多次生产事故。'
-  },
-  {
-    avatar: '卢',
-    name: '卢总',
-    title: '某AI开发 供应链负责人',
-    text: '针对我们领域用户使用偏好的预测功能让我们的开发效率大幅提升，降低了开发成本。'
-  },
-  {
-    avatar: '赵',
-    name: '赵主管',
-    title: '某能源企业 数据部门',
-    text: '试用了一段时间，预测效果基本符合预期，比之前的方案要方便不少。'
+    title: '某制造企业 运营负责人',
+    text: 'AI 助理生成的报告专业但不晦涩，业务团队也能直接理解和落地执行。'
   },
   {
     avatar: '周',
     name: '周分析师',
-    title: '某咨询公司 项目组',
-    text: '平台功能比较全面，可视化做得不错，给客户做汇报时能直接用。'
+    title: '某咨询公司 项目经理',
+    text: '页面体验和结果解释都很完整，给客户做汇报时能够直接复用平台内容。'
   }
 ]
 
-onMounted(async () => {
+const fetchCommunityStats = async () => {
   try {
-    const res = await request.get('/community/stats')
-    communityTotal.value = res.data.total
+    const response = await request.get('/community/stats')
+    communityTotal.value = response.data.total
   } catch {
     communityTotal.value = 0
+  }
+}
+
+const buildStrands = (width, height) => {
+  const count = Math.max(28, Math.min(54, Math.round(width / 18)))
+
+  strands = Array.from({ length: count }, (_, index) => {
+    const palette = strandPalette[index % strandPalette.length]
+    const ratio = count === 1 ? 0.5 : index / (count - 1)
+
+    return {
+      baseY: height * (0.16 + ratio * 0.68),
+      amplitude: 7 + Math.random() * 16,
+      secondaryAmplitude: 3 + Math.random() * 8,
+      frequency: 0.65 + Math.random() * 0.8,
+      secondaryFrequency: 1.1 + Math.random() * 1.4,
+      speed: 0.24 + Math.random() * 0.3,
+      phase: Math.random() * TAU,
+      thickness: 0.75 + Math.random() * 1.7,
+      slant: (Math.random() - 0.5) * height * 0.2,
+      stroke: palette.stroke,
+      glow: palette.glow,
+      blur: 8 + Math.random() * 12
+    }
+  })
+}
+
+const computeWaveY = (strand, progress, time) => {
+  const flowPhaseOffset = flowDirection * flowBoost * 0.38
+  const primaryPhase =
+    (progress + flowPhaseOffset * 0.06) * strand.frequency * TAU +
+    time * (strand.speed + flowBoost * 0.34) +
+    strand.phase
+  const secondaryPhase =
+    (progress + flowPhaseOffset * 0.04) * strand.secondaryFrequency * TAU * 0.75 -
+    time * (strand.speed + flowBoost * 0.2) * 0.55 +
+    strand.phase * 0.5
+
+  let y = strand.baseY
+  y += Math.sin(primaryPhase) * strand.amplitude
+  y += Math.cos(secondaryPhase) * strand.secondaryAmplitude
+  y += progress * strand.slant
+
+  if (pointerState.active && flowBoost > 0.01) {
+    const pointerX = pointerState.x * canvasWidth
+    const x = progress * canvasWidth
+    const distance = x - pointerX
+    const spread = canvasWidth * 0.22
+    const influence = Math.exp(-(distance * distance) / (2 * spread * spread)) * flowBoost
+    const glideWave = Math.sin(progress * TAU * 1.2 + time * 4.2 * flowDirection + strand.phase)
+
+    y += glideWave * influence * 4.5
+  }
+
+  return y
+}
+
+const drawStrands = (time) => {
+  if (!canvasContext || !canvasWidth || !canvasHeight) {
+    return
+  }
+
+  canvasContext.clearRect(0, 0, canvasWidth, canvasHeight)
+  canvasContext.globalCompositeOperation = 'source-over'
+  canvasContext.lineCap = 'round'
+  canvasContext.lineJoin = 'round'
+
+  const timeFactor = prefersReducedMotion ? 0.24 : 1.04 + hoverBoost * 0.18 + flowBoost * 1.8
+  const segments = 18
+
+  strands.forEach((strand, index) => {
+    const points = []
+
+    for (let step = 0; step <= segments; step += 1) {
+      const progress = step / segments
+      points.push({
+        x: progress * canvasWidth,
+        y: computeWaveY(strand, progress, time * timeFactor)
+      })
+    }
+
+    canvasContext.beginPath()
+    canvasContext.moveTo(points[0].x, points[0].y)
+
+    for (let pointIndex = 1; pointIndex < points.length - 1; pointIndex += 1) {
+      const current = points[pointIndex]
+      const next = points[pointIndex + 1]
+      const controlX = (current.x + next.x) / 2
+      const controlY = (current.y + next.y) / 2
+      canvasContext.quadraticCurveTo(current.x, current.y, controlX, controlY)
+    }
+
+    const penultimate = points[points.length - 2]
+    const last = points[points.length - 1]
+    canvasContext.quadraticCurveTo(penultimate.x, penultimate.y, last.x, last.y)
+
+    canvasContext.lineWidth = strand.thickness + hoverBoost * 0.12 + flowBoost * 0.16
+    canvasContext.strokeStyle = strand.stroke
+    canvasContext.shadowBlur = strand.blur + hoverBoost * 2 + flowBoost * 3
+    canvasContext.shadowColor = strand.glow
+    canvasContext.globalAlpha = 0.8
+    canvasContext.stroke()
+
+    if (index % 5 === 0) {
+      canvasContext.lineWidth = strand.thickness * 0.5
+      canvasContext.strokeStyle = 'rgba(255, 244, 224, 0.28)'
+      canvasContext.shadowBlur = strand.blur * (0.9 + flowBoost * 0.16)
+      canvasContext.shadowColor = 'rgba(255, 235, 208, 0.24)'
+      canvasContext.globalAlpha = 0.42
+      canvasContext.stroke()
+    }
+  })
+}
+
+const resizeLogoCanvas = () => {
+  const stage = logoStageRef.value
+  const canvas = logoCanvasRef.value
+
+  if (!stage || !canvas) {
+    return
+  }
+
+  const rect = stage.getBoundingClientRect()
+  const nextWidth = Math.max(1, Math.round(rect.width))
+  const nextHeight = Math.max(1, Math.round(rect.height))
+  const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2)
+
+  canvas.width = Math.round(nextWidth * devicePixelRatio)
+  canvas.height = Math.round(nextHeight * devicePixelRatio)
+  canvas.style.width = `${nextWidth}px`
+  canvas.style.height = `${nextHeight}px`
+
+  canvasContext = canvas.getContext('2d')
+  canvasWidth = nextWidth
+  canvasHeight = nextHeight
+
+  if (!canvasContext) {
+    return
+  }
+
+  canvasContext.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0)
+  buildStrands(nextWidth, nextHeight)
+  drawStrands((performance.now() - animationStart) / 1000)
+}
+
+const renderLogoFrame = (timestamp) => {
+  if (!animationStart) {
+    animationStart = timestamp
+  }
+
+  hoverBoost += ((pointerState.active ? 1 : 0) - hoverBoost) * 0.08
+  flowBoost += (0 - flowBoost) * 0.08
+  drawStrands((timestamp - animationStart) / 1000)
+  animationFrameId = window.requestAnimationFrame(renderLogoFrame)
+}
+
+const setupLogoAnimation = async () => {
+  await nextTick()
+
+  if (!logoStageRef.value || !logoCanvasRef.value) {
+    return
+  }
+
+  prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  animationStart = performance.now()
+  resizeLogoCanvas()
+
+  if ('ResizeObserver' in window) {
+    resizeObserver = new ResizeObserver(() => {
+      resizeLogoCanvas()
+    })
+    resizeObserver.observe(logoStageRef.value)
+  }
+
+  animationFrameId = window.requestAnimationFrame(renderLogoFrame)
+}
+
+const handleLogoPointerEnter = () => {
+  pointerState.active = true
+}
+
+const handleLogoPointerLeave = () => {
+  pointerState.active = false
+  pointerState.x = 0.5
+  pointerState.y = 0.5
+  lastPointerMoveTime = 0
+}
+
+const handleLogoPointerMove = (event) => {
+  const stage = logoStageRef.value
+
+  if (!stage) {
+    return
+  }
+
+  const rect = stage.getBoundingClientRect()
+  const relativeX = (event.clientX - rect.left) / rect.width
+  const relativeY = (event.clientY - rect.top) / rect.height
+
+  pointerState.x = Math.min(1, Math.max(0, relativeX))
+  pointerState.y = Math.min(1, Math.max(0, relativeY))
+
+  const nowTime = performance.now()
+
+  if (lastPointerMoveTime) {
+    const deltaX = event.clientX - lastPointerClientX
+    const deltaTime = Math.max(12, nowTime - lastPointerMoveTime)
+    const velocity = Math.abs(deltaX) / deltaTime
+
+    if (Math.abs(deltaX) > 0.5) {
+      flowDirection = deltaX >= 0 ? 1 : -1
+      flowBoost = Math.max(flowBoost, Math.min(1.4, velocity * 1.4))
+    }
+  }
+
+  lastPointerClientX = event.clientX
+  lastPointerMoveTime = nowTime
+}
+
+onMounted(() => {
+  setupLogoAnimation()
+  fetchCommunityStats()
+})
+
+onBeforeUnmount(() => {
+  if (animationFrameId) {
+    window.cancelAnimationFrame(animationFrameId)
+  }
+
+  if (resizeObserver) {
+    resizeObserver.disconnect()
   }
 })
 </script>
@@ -154,115 +462,225 @@ onMounted(async () => {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
 .home-view {
   min-height: 100vh;
-  background: #ffffff;
   margin-top: -20px;
+  background:
+    radial-gradient(circle at top left, rgba(231, 217, 198, 0.28), transparent 28%),
+    linear-gradient(180deg, #fcfbf8 0%, #ffffff 38%, #fcfaf6 100%);
 }
 
 .hero {
   position: relative;
-  padding: 120px 20px 120px;
-  text-align: center;
+  padding: 108px 20px 120px;
   overflow: hidden;
-  background: #ffffff;
+  text-align: center;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 8% auto auto 8%;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(210, 180, 140, 0.14) 0%, rgba(210, 180, 140, 0) 72%);
+  filter: blur(10px);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: auto 6% 0 auto;
+  width: 420px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(139, 90, 43, 0.08) 0%, rgba(139, 90, 43, 0) 75%);
+  filter: blur(24px);
 }
 
 .hero-bg {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: transparent;
-  opacity: 0;
+  inset: 0;
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0) 0%, rgba(244, 233, 220, 0.2) 48%, rgba(255, 255, 255, 0) 100%);
+  opacity: 1;
 }
 
 .hero-content {
   position: relative;
-  max-width: 900px;
+  z-index: 1;
+  max-width: 980px;
   margin: 0 auto;
 }
 
-.hero-logo {
-  max-width: 320px;
-  height: auto;
-  margin-bottom: 40px;
+.hero-brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px;
+  margin: 0 auto 42px;
+  padding: 22px 18px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.hero-brand::after {
+  content: '';
+  position: absolute;
+  inset: 14% 18%;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.54) 0%, rgba(255, 255, 255, 0.12) 44%, rgba(255, 255, 255, 0) 74%);
+  filter: blur(28px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-brand-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.96;
+  mix-blend-mode: multiply;
+}
+
+.hero-brand-copy {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 28px 20px;
+}
+
+.hero-brand-copy::before {
+  content: '';
+  position: absolute;
+  inset: 4% -12% 2%;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 255, 255, 0.44) 0%, rgba(255, 255, 255, 0.16) 42%, rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0) 82%);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.78) 16%, #000 50%, rgba(0, 0, 0, 0.78) 84%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.78) 16%, #000 50%, rgba(0, 0, 0, 0.78) 84%, transparent 100%);
+}
+
+.hero-brand-heading {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(18px, 4vw, 54px);
+}
+
+.hero-brand-cn {
+  font-family: 'Source Han Sans SC', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  font-size: clamp(56px, 11vw, 116px);
+  line-height: 0.92;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #15284a;
+  text-shadow: 0 10px 30px rgba(255, 255, 255, 0.42);
+}
+
+.hero-brand-en {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: 'Avenir Next', 'Montserrat', 'Segoe UI', sans-serif;
+  font-size: clamp(30px, 5vw, 74px);
+  line-height: 0.88;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: #17305b;
+  text-transform: uppercase;
+  text-shadow: 0 10px 30px rgba(255, 255, 255, 0.42);
+}
+
+.hero-brand-tagline {
+  margin: 0;
+  font-size: clamp(18px, 2.4vw, 30px);
+  line-height: 1.25;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  color: #6b5236;
 }
 
 .hero-title {
-  font-size: 52px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #C9A0A0 0%, #8B6914 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin: 0 0 20px;
-  line-height: 1.2;
+  max-width: 860px;
+  margin: 0 auto 18px;
+  font-family: 'Source Han Serif SC', 'Songti SC', serif;
+  font-size: clamp(38px, 5.2vw, 56px);
+  line-height: 1.15;
+  font-weight: 700;
+  color: #162844;
   letter-spacing: -0.03em;
 }
 
 .hero-subtitle {
+  max-width: 720px;
+  margin: 0 auto 40px;
   font-size: 18px;
-  color: #64748b;
-  margin: 0 0 40px;
-  line-height: 1.8;
+  line-height: 1.9;
+  color: #5f6978;
 }
 
 .hero-actions {
   display: flex;
-  gap: 16px;
   justify-content: center;
   flex-wrap: wrap;
+  gap: 16px;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #C9A0A0 0%, #8B6914 100%);
-  border: none;
   padding: 14px 40px;
+  border: none;
+  background: linear-gradient(135deg, #8b5a2b 0%, #c7925b 62%, #d2b48c 100%);
+  box-shadow: 0 14px 34px rgba(139, 90, 43, 0.26);
   font-size: 16px;
   font-weight: 600;
-  box-shadow: 0 10px 30px rgba(139,105,20,0.3);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(139,105,20,0.4);
+  box-shadow: 0 18px 40px rgba(139, 90, 43, 0.34);
 }
 
 .btn-secondary {
   padding: 14px 40px;
+  border: 1px solid rgba(139, 90, 43, 0.28);
+  background: rgba(255, 255, 255, 0.72);
+  color: #7a5630;
+  box-shadow: 0 10px 26px rgba(97, 74, 49, 0.08);
   font-size: 16px;
   font-weight: 600;
-  border: 2px solid #A0826D;
-  color: #8B6914;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
 }
 
 .btn-secondary:hover {
-  background: #A0826D;
-  color: white;
   transform: translateY(-2px);
+  background: rgba(139, 90, 43, 0.1);
+  color: #5e3e20;
 }
 
 .stats {
-  padding: 60px 20px;
   max-width: 1200px;
-  margin: 0 auto;
-  background: linear-gradient(135deg, #C9A0A0 0%, #8B6914 100%);
-  border-radius: 20px;
-  margin-bottom: 40px;
+  margin: 0 auto 40px;
+  padding: 60px 20px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #6a4527 0%, #9c6a3d 52%, #cfb190 100%);
 }
 
 .stats-grid {
@@ -273,24 +691,24 @@ onMounted(async () => {
 
 .stat-item {
   text-align: center;
-  color: white;
+  color: #fffaf2;
 }
 
 .stat-value {
+  margin-bottom: 8px;
   font-size: 42px;
   font-weight: 800;
-  margin-bottom: 8px;
 }
 
 .stat-label {
   font-size: 16px;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .features {
-  padding: 80px 20px;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 80px 20px;
 }
 
 .feature-grid {
@@ -300,29 +718,26 @@ onMounted(async () => {
 }
 
 .feature-item {
-  padding: 40px 32px;
-  background: white;
-  background-size: cover;
-  background-position: center;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeInUp 0.6s ease-out backwards;
   position: relative;
-  overflow: hidden;
-  min-height: 280px;
   display: flex;
   align-items: center;
+  min-height: 280px;
+  padding: 40px 32px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #ffffff;
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 10px 30px rgba(48, 37, 24, 0.07);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.6s ease-out backwards;
 }
 
 .feature-item::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 252, 246, 0.9) 100%);
   z-index: 1;
 }
 
@@ -335,41 +750,49 @@ onMounted(async () => {
 
 .feature-item:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(160,130,109,0.15);
+  box-shadow: 0 20px 40px rgba(139, 90, 43, 0.14);
 }
 
 .feature-icon {
-  font-size: 48px;
-  margin-bottom: 20px;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(139, 90, 43, 0.16), rgba(210, 180, 140, 0.32));
+  color: #6a4527;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
 }
 
 .feature-item h3 {
+  margin: 0 0 12px;
   font-size: 20px;
   font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 12px;
+  color: #162844;
 }
 
 .feature-item p {
-  font-size: 14px;
-  color: #64748b;
   margin: 0;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.75;
+  color: #5f6978;
 }
 
 .papers {
-  padding: 80px 20px 100px;
   max-width: 1200px;
   margin: 0 auto;
-  background: #ffffff;
+  padding: 80px 20px 100px;
 }
 
 .section-title {
+  margin: 0 0 50px;
+  text-align: center;
   font-size: 36px;
   font-weight: 800;
-  color: #0f172a;
-  text-align: center;
-  margin: 0 0 50px;
+  color: #162844;
 }
 
 .papers-grid {
@@ -380,55 +803,55 @@ onMounted(async () => {
 
 .paper-card {
   padding: 28px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
-  border: 1px solid rgba(160,130,109,0.15);
+  border: 1px solid rgba(139, 90, 43, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 24px rgba(48, 37, 24, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .paper-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(160,130,109,0.2);
-  border-color: rgba(139,105,20,0.4);
+  border-color: rgba(139, 90, 43, 0.32);
+  box-shadow: 0 16px 36px rgba(139, 90, 43, 0.12);
 }
 
 .paper-badge {
   display: inline-block;
+  margin-bottom: 14px;
   padding: 6px 14px;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  margin-bottom: 14px;
 }
 
 .paper-badge.ccfb {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: white;
+  background: linear-gradient(135deg, #c68a4d 0%, #9a5f2b 100%);
+  color: #fff7ef;
 }
 
 .paper-badge.ccfc {
-  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-  color: white;
+  background: linear-gradient(135deg, #d7bc92 0%, #ae7e4f 100%);
+  color: #fffaf4;
 }
 
 .paper-model {
+  margin-bottom: 6px;
   font-size: 17px;
   font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 6px;
+  color: #162844;
 }
 
 .paper-conf {
   font-size: 13px;
-  color: #64748b;
   font-weight: 500;
+  color: #5f6978;
 }
 
 .testimonials {
-  padding: 80px 20px 100px;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 80px 20px 100px;
 }
 
 .testimonials-grid {
@@ -439,67 +862,87 @@ onMounted(async () => {
 
 .testimonial-card {
   padding: 32px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  transition: all 0.3s ease;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 30px rgba(48, 37, 24, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .testimonial-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(160,130,109,0.15);
+  box-shadow: 0 16px 36px rgba(139, 90, 43, 0.12);
 }
 
 .testimonial-avatar {
   width: 50px;
   height: 50px;
+  margin-bottom: 16px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #C9A0A0 0%, #8B6914 100%);
-  color: white;
+  background: linear-gradient(135deg, #8b5a2b 0%, #d2b48c 100%);
+  color: #fff8ef;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 16px;
+  font-weight: 700;
 }
 
 .testimonial-text {
-  font-size: 15px;
-  color: #475569;
-  line-height: 1.7;
   margin-bottom: 16px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #485567;
   font-style: italic;
 }
 
 .testimonial-author {
-  border-top: 1px solid #e2e8f0;
   padding-top: 12px;
+  border-top: 1px solid rgba(95, 105, 120, 0.16);
 }
 
 .author-name {
+  margin-bottom: 4px;
   font-size: 15px;
   font-weight: 600;
-  color: #0f172a;
-  margin-bottom: 4px;
+  color: #162844;
 }
 
 .author-title {
   font-size: 13px;
-  color: #64748b;
+  color: #5f6978;
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 36px;
+  .hero {
+    padding-top: 88px;
+    padding-bottom: 96px;
   }
+
+  .hero-brand {
+    min-height: 210px;
+    margin-bottom: 34px;
+  }
+
+  .hero-brand-heading {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hero-brand-en {
+    align-items: center;
+  }
+
+  .hero-brand-tagline {
+    letter-spacing: 0.1em;
+  }
+
   .hero-subtitle {
     font-size: 16px;
   }
-  .hero-logo {
-    max-width: 200px;
-  }
-  .feature-grid, .papers-grid {
+
+  .feature-grid,
+  .papers-grid {
     grid-template-columns: 1fr;
   }
 }
