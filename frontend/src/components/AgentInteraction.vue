@@ -12,15 +12,15 @@
           :class="{ active: assistantMode === 'shu_hero' }"
           @click="switchAssistantMode('shu_hero')"
         >
-          鼠大侠
+          鼠先知
         </button>
         <button
           type="button"
           class="model-chip"
-          :class="{ active: assistantMode === 'tianyi_kb' }"
-          @click="switchAssistantMode('tianyi_kb')"
+          :class="{ active: assistantMode === 'deepseek' }"
+          @click="switchAssistantMode('deepseek')"
         >
-          天翼云知识库
+          DeepSeek
         </button>
       </div>
     </div>
@@ -71,9 +71,9 @@
           <!-- 思考过程（可折叠） -->
           <div v-if="msg.thinking" class="thinking-section">
             <div class="thinking-header" @click="msg.thinkingExpanded = !msg.thinkingExpanded">
-              <span class="thinking-icon">💭</span>
-              <span>思考过程 ({{ msg.thinking.trajectory.length }}步)</span>
-              <span class="thinking-toggle">{{ msg.thinkingExpanded ? '▲ 收起' : '▼ 展开' }}</span>
+              <span class="thinking-icon">🧠</span>
+              <span>思考过程（{{ msg.thinking.trajectory.length }}步）</span>
+              <span class="thinking-toggle">{{ msg.thinkingExpanded ? '收起' : '展开' }}</span>
             </div>
             <div v-if="msg.thinkingExpanded" class="thinking-steps">
               <div v-for="step in msg.thinking.trajectory" :key="step.step" class="thinking-step">
@@ -206,8 +206,8 @@ const redeemCode = ref('');
 const redeeming = ref(false);
 
 const inputPlaceholder = computed(() => {
-  if (assistantMode.value === 'tianyi_kb') {
-    return '在这里输入消息，体验天翼云知识库...';
+  if (assistantMode.value === 'deepseek') {
+    return '在这里输入消息，直接使用 DeepSeek-V3.2-Pro...';
   }
   return pendingFile.value ? '输入附加说明（如：帮我深度分析一下）...' : '在这里输入消息...';
 });
@@ -226,9 +226,9 @@ const switchAssistantMode = (mode) => {
   pendingFile.value = null;
 
   const modeWelcome =
-    mode === 'tianyi_kb'
-      ? '欢迎使用**天翼云知识库**。'
-      : '已切换至**鼠大侠**，继续为你提供正常的智能助理服务。';
+    mode === 'deepseek'
+      ? '欢迎使用 **DeepSeek-V3.2-Pro**。'
+      : '已切换至 **SHU Prophet** 模式。';
 
   messages.value.push({ sender: 'agent', text: modeWelcome });
   scrollToBottom();
@@ -266,7 +266,7 @@ const onAvatarClick = (index, event) => {
   clickCounts.value[index]++;
 
   const msg = messages.value[index];
-  const phrases = ['在下鼠先知，有何指教？', '今天的预测准吗？', '让我算算...', '数据在跳舞呢~', '(/ω＼)'];
+  const phrases = ['我在，直接说。', '今天的数据怎么样？', '让我算算...', '继续发我问题。', '收到。'];
 
   if (clickCounts.value[index] >= 5) {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -319,16 +319,13 @@ const sendMessage = async (initialMessage = '', isGreeting = false) => {
   scrollToBottom();
 
   try {
-    if (assistantMode.value === 'tianyi_kb') {
-      await new Promise(resolve => setTimeout(resolve, 350));
-      messages.value.push({
-        sender: 'agent',
-        text: '欢迎使用**天翼云知识库**。'
+    if (assistantMode.value === 'deepseek') {
+      const response = await request.post('/deepseek-message', {
+        message: textToSend,
+        session_id: sessionId.value
       });
-      return;
-    }
-
-    if (currentFile) {
+      messages.value.push({ sender: 'agent', text: response.data.reply });
+    } else if (currentFile) {
       // 文件+文本模式：通过 FormData 发送
       const formData = new FormData();
       formData.append('file', currentFile);
@@ -381,7 +378,7 @@ const sendMessage = async (initialMessage = '', isGreeting = false) => {
 // 文件选择（不自动上传）
 const triggerFileSelect = () => {
   if (assistantMode.value !== 'shu_hero') {
-    ElMessage.warning('天翼云知识库模式暂不支持 CSV 上传');
+    ElMessage.warning('DeepSeek 模式暂不支持 CSV 上传');
     return;
   }
   fileInputRef.value?.click();

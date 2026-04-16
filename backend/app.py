@@ -10,7 +10,12 @@ from models.arima_predictor import predict_with_arima
 
 from werkzeug.utils import secure_filename
 from models.prediction_tool import analyze_and_predict
-from models.agent_chain import get_conversational_response, generate_standalone_report, smart_predict
+from models.agent_chain import (
+    get_conversational_response,
+    get_deepseek_response,
+    generate_standalone_report,
+    smart_predict,
+)
 from agent.reasoner import TSReasoner
 from utils.auth_utils import login_required, decode_token
 from blueprints.credits import check_and_consume_chat
@@ -18,7 +23,10 @@ from blueprints.credits import check_and_consume_chat
 from extensions import db, SECRET_KEY, DATABASE_URL
 
 # --- 初始化 Flask 应用 ---
-app = Flask(__name__, static_folder='../dist')
+_LOCAL_FRONTEND_DIST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist'))
+_DOCKER_FRONTEND_DIST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dist'))
+FRONTEND_DIST_DIR = _LOCAL_FRONTEND_DIST_DIR if os.path.exists(_LOCAL_FRONTEND_DIST_DIR) else _DOCKER_FRONTEND_DIST_DIR
+app = Flask(__name__, static_folder=FRONTEND_DIST_DIR)
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL or (
     'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'shu_prophet.db')
@@ -35,6 +43,7 @@ from blueprints.user import user_bp
 from blueprints.community import community_bp
 from blueprints.credits import credits_bp
 from blueprints.admin import admin_bp
+
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(community_bp)
@@ -44,6 +53,7 @@ app.register_blueprint(admin_bp)
 # 创建数据库表
 with app.app_context():
     from models.db_models import User, Post, Comment, PostLike, RedeemCode, DailyUsage, CreditLog
+
     try:
         db.create_all()
     except Exception:
@@ -58,7 +68,9 @@ with app.app_context():
         # 初始化已有用户的累计积分
         db.session.execute(db.text('UPDATE "user" SET total_credits = credits WHERE total_credits = 0'))
         # 清理可能损坏的 avatar_data
-        db.session.execute(db.text('UPDATE "user" SET avatar_data = NULL WHERE LENGTH(COALESCE(avatar_data, \'\')) > 10000000'))
+        db.session.execute(
+            db.text('UPDATE "user" SET avatar_data = NULL WHERE LENGTH(COALESCE(avatar_data, \'\')) > 10000000')
+        )
         db.session.commit()
     except Exception:
         db.session.rollback()
@@ -68,6 +80,7 @@ STATIC_DATA_DIR = 'static_data'
 UPLOADS_DIR = 'uploads'
 if not os.path.exists(UPLOADS_DIR):
     os.makedirs(UPLOADS_DIR)
+
 
 # --- 数据预处理与计算函数 ---
 def _sanitize(obj):
@@ -86,16 +99,33 @@ def _sanitize(obj):
         return obj.tolist()
     return obj
 
+
 def smooth(y, win=11, poly=3):
     """Savitzky-Golay平滑函数"""
     if len(y) < win:
         return y
     return savgol_filter(y, window_length=win, polyorder=poly)
 
+
 # --- 思考模式辅助函数 ---
-_THINK_KEYWORDS = ['思考', '深度分析', '详细分析', '推理', '深入', '仔细',
-                   'think', 'analyze', 'deep', 'reason', '为什么', '原因',
-                   '分析一下', '帮我看看', '诊断']
+_THINK_KEYWORDS = [
+    '思考',
+    '深度分析',
+    '详细分析',
+    '推理',
+    '深入',
+    '仔细',
+    'think',
+    'analyze',
+    'deep',
+    'reason',
+    '为什么',
+    '原因',
+    '分析一下',
+    '帮我看看',
+    '诊断',
+]
+
 
 def _should_think(message: str) -> bool:
     """根据用户消息判断是否启用思考模式。"""
@@ -104,32 +134,34 @@ def _should_think(message: str) -> bool:
     msg = message.lower()
     return any(kw in msg for kw in _THINK_KEYWORDS)
 
+
 def _format_trajectory(trajectory: dict) -> list:
     """将推理轨迹格式化为前端可展示的结构。"""
     steps = trajectory.get("steps", [])
     formatted = []
-    for s in steps:
-        obs = s.get("observation", {})
-        # 生成简洁的结果摘要
+    for step in steps:
+        obs = step.get("observation", {})
         summary_parts = []
-        for k, v in obs.items():
-            if k == "tool":
+        for key, value in obs.items():
+            if key == "tool":
                 continue
-            sv = str(v)
-            if len(sv) > 50:
-                sv = sv[:47] + "..."
-            summary_parts.append(f"{k}={sv}")
-        formatted.append({
-            "step": s["step"],
-            "thought": s["thought"],
-            "tool": s["action"],
-            "result": ", ".join(summary_parts) if summary_parts else "done",
-            "time": s.get("timestamp", 0)
-        })
+            text = str(value)
+            if len(text) > 50:
+                text = text[:47] + "..."
+            summary_parts.append(f"{key}={text}")
+        formatted.append(
+            {
+                "step": step["step"],
+                "thought": step["thought"],
+                "tool": step["action"],
+                "result": ", ".join(summary_parts) if summary_parts else "done",
+                "time": step.get("timestamp", 0),
+            }
+        )
     return formatted
 
-# --- API 路由 ---
 
+# --- API 路由 ---
 @app.route('/api/datasets', methods=['GET'])
 def get_datasets():
     """API: 获取所有可用的科研数据集文件名。"""
@@ -140,10 +172,11 @@ def get_datasets():
     except FileNotFoundError:
         return jsonify([])
 
+
 @app.route('/api/parse-csv', methods=['POST'])
 def parse_csv():
     """
-    【静态核心API - 终极版】: 
+    【静态核心API - 终极版】:
     读取CSV(含模型名称)，执行预处理，计算MAE/MSE，并返回所有数据。
     """
     data = request.json
@@ -154,28 +187,21 @@ def parse_csv():
     file_path = os.path.join(STATIC_DATA_DIR, 'research_datasets', dataset_file)
 
     try:
-        # 1. 读取CSV（第一行是列名）
         raw = pd.read_csv(file_path)
 
-        # 2. 从列名中提取模型名称
-        model_names_raw = raw.columns.tolist()
-
-        # 3. 数据清理与处理
-        INVALID = -1.0145037163717687
-        TOL = 1e-6
+        invalid = -1.0145037163717687
+        tolerance = 1e-6
 
         response = {"actual_data": {}, "model_predictions": []}
 
-        # 先处理并存储Ground Truth数据
         gt_x_col, gt_y_col = 'actual_x', 'actual_y'
         gt_df_raw = raw[[gt_x_col, gt_y_col]].dropna()
-        gt_df = gt_df_raw.loc[~np.isclose(gt_df_raw[gt_y_col], INVALID, atol=TOL)].astype(float)
+        gt_df = gt_df_raw.loc[~np.isclose(gt_df_raw[gt_y_col], invalid, atol=tolerance)].astype(float)
         gt_df = gt_df.groupby(gt_x_col, as_index=False)[gt_y_col].mean()
         gt_y_smooth = smooth(gt_df[gt_y_col].values)
         gt_processed_data = list(zip(gt_df[gt_x_col].values, gt_y_smooth))
         response["actual_data"] = {"model_name": "Actual", "data": gt_processed_data}
 
-        # 循环处理所有预测模型
         model_cols = [col for col in raw.columns if col.endswith('_x') and col != 'actual_x']
         for model_x_col in model_cols:
             model_name = model_x_col.replace('_x', '')
@@ -185,31 +211,32 @@ def parse_csv():
                 continue
 
             pred_df_raw = raw[[model_x_col, model_y_col]].dropna()
-            pred_df = pred_df_raw.loc[~np.isclose(pred_df_raw[model_y_col], INVALID, atol=TOL)].astype(float)
+            pred_df = pred_df_raw.loc[~np.isclose(pred_df_raw[model_y_col], invalid, atol=tolerance)].astype(float)
             pred_df = pred_df.groupby(model_x_col, as_index=False)[model_y_col].mean()
 
             pred_y_smooth = smooth(pred_df[model_y_col].values)
             pred_processed_data = list(zip(pred_df[model_x_col].values, pred_y_smooth))
 
-            # 计算性能指标
             gt_y_interpolated = np.interp(pred_df[model_x_col], gt_df[gt_x_col], gt_y_smooth)
             mae = mean_absolute_error(gt_y_interpolated, pred_y_smooth)
             mse = mean_squared_error(gt_y_interpolated, pred_y_smooth)
 
-            response["model_predictions"].append({
-                "model_name": model_name,
-                "data": pred_processed_data,
-                "metrics": {
-                    "mae": round(mae, 4),
-                    "mse": round(mse, 4)
+            response["model_predictions"].append(
+                {
+                    "model_name": model_name,
+                    "data": pred_processed_data,
+                    "metrics": {
+                        "mae": round(mae, 4),
+                        "mse": round(mse, 4),
+                    },
                 }
-            })
-        
+            )
+
         time.sleep(1.5)
         return jsonify(response)
-
     except Exception as e:
         return jsonify({"error": f"Backend Error: {str(e)}"}), 500
+
 
 @app.route('/api/live-predict', methods=['POST'])
 def live_predict():
@@ -226,7 +253,7 @@ def live_predict():
         return jsonify(prediction_result)
     return jsonify({"error": "File upload failed"}), 500
 
-# --- 核心升级：新增一个只处理文本消息的API ---
+
 @app.route('/api/agent-message', methods=['POST'])
 @login_required
 def agent_message():
@@ -238,35 +265,70 @@ def agent_message():
     if not user_message:
         return jsonify({"error": "消息内容不能为空"}), 400
 
-    # 简单问候直接返回静态回复，不消耗配额和AI调用
-    _GREETING_KEYWORDS = ['你好', '您好', 'hello', 'hi', '嗨', '在吗']
-    if user_message.strip().lower() in _GREETING_KEYWORDS:
-        return jsonify({"reply": (
-            "你好！我是**鼠先知 (SHU Prophet)** AI智能助理 🐭\n\n"
-            "我可以帮你进行时间序列数据的分析与预测。"
-            "只需上传一个CSV文件（含X、Y两列），"
-            "我就能为你生成专业的预测报告。\n\n"
-            "有什么我可以帮你的吗？"
-        )})
+    greeting_keywords = ['你好', '您好', 'hello', 'hi', '嗨', '在吗']
+    if user_message.strip().lower() in greeting_keywords:
+        return jsonify(
+            {
+                "reply": (
+                    "你好！我是 **鼠先知 (SHU Prophet)** AI 智能助理。\n\n"
+                    "我可以帮你进行时间序列数据的分析与预测。"
+                    "只需上传一个 CSV 文件（含 X、Y 两列），"
+                    "我就能为你生成专业的预测报告。\n\n"
+                    "有什么我可以帮你的吗？"
+                )
+            }
+        )
 
-    # 检查用量并消耗配额
     ok, err = check_and_consume_chat(g.user_id)
     if not ok:
         return jsonify({"error": err}), 403
 
     try:
         agent_reply = get_conversational_response(user_message, session_id)
-    except Exception as e:
-        return jsonify({"reply": "抱歉，AI服务暂时不可用，请稍后再试。"}), 200
+    except Exception:
+        return jsonify({"reply": "抱歉，AI 服务暂时不可用，请稍后再试。"}), 200
 
     return jsonify({"reply": agent_reply})
 
-# --- 智能助理文件处理API（支持思考模式）---
+
+@app.route('/api/deepseek-message', methods=['POST'])
+@login_required
+def deepseek_message():
+    """DeepSeek chat API backed by Tianyi Cloud's OpenAI-compatible endpoint."""
+    data = request.json or {}
+    user_message = data.get('message')
+    session_id = data.get('session_id', 'default_deepseek_session')
+
+    if not user_message:
+        return jsonify({"error": "消息内容不能为空"}), 400
+
+    greeting_keywords = ['你好', '您好', 'hello', 'hi', '嗨', '在吗']
+    if user_message.strip().lower() in greeting_keywords:
+        return jsonify(
+            {
+                "reply": (
+                    "你好，我是 **DeepSeek-V3.2-Pro**。\n\n"
+                    "当前模式走天翼云模型推理接口，适合直接问答、写作、推理和代码辅助。"
+                )
+            }
+        )
+
+    ok, err = check_and_consume_chat(g.user_id)
+    if not ok:
+        return jsonify({"error": err}), 403
+
+    try:
+        agent_reply = get_deepseek_response(user_message, session_id)
+    except Exception as e:
+        return jsonify({"error": f"DeepSeek 服务暂时不可用: {str(e)}"}), 500
+
+    return jsonify({"reply": agent_reply})
+
+
 @app.route('/api/agent-upload-predict', methods=['POST'])
 @login_required
 def agent_upload_predict():
     """智能助理文件处理API: 接收文件+可选消息，支持思考模式深度推理。"""
-    # 检查用量并消耗配额
     ok, err = check_and_consume_chat(g.user_id)
     if not ok:
         return jsonify({"error": err}), 403
@@ -278,7 +340,6 @@ def agent_upload_predict():
     if file.filename == '':
         return jsonify({"error": "未选择任何文件"}), 400
 
-    # 获取用户附带的文本消息
     user_message = request.form.get('message', '')
 
     if file:
@@ -287,13 +348,11 @@ def agent_upload_predict():
         file.save(filepath)
 
         try:
-            # 1. ARIMA 基础分析
             analysis_result = analyze_and_predict(filepath)
             report_markdown = generate_standalone_report(analysis_result, user_message)
         except Exception as e:
             return jsonify({"error": f"数据分析失败: {str(e)}"}), 500
 
-        # 2. 智能预测引擎
         smart_result = None
         summary = analysis_result.get("summary_stats", {})
         data_y = summary.get("historical_y", [])
@@ -305,18 +364,19 @@ def agent_upload_predict():
             except Exception:
                 pass
 
-        # 3. 思考模式：深度推理分析
         thinking_result = None
         if _should_think(user_message) and len(data_y) >= 10:
             try:
                 reasoner = TSReasoner()
                 raw = reasoner.predict(data_y, steps=forecast_steps)
-                thinking_result = _sanitize({
-                    "trajectory": _format_trajectory(raw.get("trajectory", {})),
-                    "data_profile": raw.get("data_profile", {}),
-                    "predictions": raw.get("predictions", []),
-                    "confidence": raw.get("confidence", {}),
-                })
+                thinking_result = _sanitize(
+                    {
+                        "trajectory": _format_trajectory(raw.get("trajectory", {})),
+                        "data_profile": raw.get("data_profile", {}),
+                        "predictions": raw.get("predictions", []),
+                        "confidence": raw.get("confidence", {}),
+                    }
+                )
             except Exception:
                 pass
 
@@ -330,6 +390,7 @@ def agent_upload_predict():
         return jsonify(_sanitize(response_data))
 
     return jsonify({"error": "文件上传失败"}), 500
+
 
 @app.route('/api/smart-predict', methods=['POST'])
 def smart_predict_api():
@@ -365,6 +426,7 @@ def smart_predict_api():
             return jsonify({"error": f"预测失败: {str(e)}"}), 500
 
     return jsonify({"error": "文件上传失败"}), 500
+
 
 @app.route('/api/agent-reason', methods=['POST'])
 def agent_reason():
@@ -402,17 +464,16 @@ def agent_reason():
 
     return jsonify({"error": "文件上传失败"}), 500
 
+
 # --- 服务前端静态文件的路由 ---
-# 这个路由捕获所有不是API的请求
+# 这个路由捕获所有不是 API 的请求
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    # 如果请求的是一个存在的文件 (如/assets/index.js), 则直接发送该文件
     if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
-    # 否则，发送入口index.html，让Vue Router接管路由
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
+    return send_from_directory(app.static_folder, 'index.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

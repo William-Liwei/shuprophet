@@ -126,7 +126,11 @@
 
 ```
 OPENAI_API_KEY=你的API密钥
-OPENAI_API_BASE=https://api.moonshot.cn/v1
+OPENAI_API_BASE=https://open.bigmodel.cn/api/paas/v4/
+ZHIPU_MODEL=glm-4-flash-250414
+DEEPSEEK_API_KEY=你的天翼云AppKey
+DEEPSEEK_API_BASE=https://wishub-x6.ctyun.cn/v1
+DEEPSEEK_MODEL=24625803b01f4f90b72abbe9d9cdf5cc
 ADMIN_PASSWORD=你的管理员密码
 ```
 
@@ -142,7 +146,11 @@ docker build -t shuprophet .
 docker run -p 8080:8080 \
   -e DATABASE_URL=postgresql://user:pass@host:5432/dbname \
   -e OPENAI_API_KEY=你的API密钥 \
-  -e OPENAI_API_BASE=https://api.moonshot.cn/v1 \
+  -e OPENAI_API_BASE=https://open.bigmodel.cn/api/paas/v4/ \
+  -e ZHIPU_MODEL=glm-4-flash-250414 \
+  -e DEEPSEEK_API_KEY=你的天翼云AppKey \
+  -e DEEPSEEK_API_BASE=https://wishub-x6.ctyun.cn/v1 \
+  -e DEEPSEEK_MODEL=24625803b01f4f90b72abbe9d9cdf5cc \
   -e ADMIN_PASSWORD=你的管理员密码 \
   shuprophet
 ```
@@ -160,9 +168,10 @@ cd shuprophet
 
 ```bash
 cd backend
-python -m venv venv
-# Windows: venv\Scripts\activate
-# macOS/Linux: source venv/bin/activate
+python -m venv .venv
+# Windows PowerShell: .\.venv\Scripts\Activate.ps1
+# Windows CMD: .\.venv\Scripts\activate.bat
+# macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -170,20 +179,40 @@ pip install -r requirements.txt
 
 ```
 OPENAI_API_KEY=你的API密钥
-OPENAI_API_BASE=https://api.moonshot.cn/v1
+OPENAI_API_BASE=https://open.bigmodel.cn/api/paas/v4/
+ZHIPU_MODEL=glm-4-flash-250414
+DEEPSEEK_API_KEY=你的天翼云AppKey
+DEEPSEEK_API_BASE=https://wishub-x6.ctyun.cn/v1
+DEEPSEEK_MODEL=24625803b01f4f90b72abbe9d9cdf5cc
 ADMIN_PASSWORD=你的管理员密码
 ```
 
+**前端构建（通过 Flask 访问页面时需要先执行）：**
+
 ```bash
+cd ../frontend
+npm install
+npm run build
+```
+
+**后端启动：**
+
+```bash
+cd ../backend
 python app.py
 # 后端运行在 http://127.0.0.1:5000
 ```
 
-**前端（新终端）：**
+如果不想激活虚拟环境，也可以直接使用解释器启动：
+
+```bash
+.\backend\.venv\Scripts\python.exe .\backend\app.py
+```
+
+**前端独立开发（新终端，可选）：**
 
 ```bash
 cd frontend
-npm install
 npm run dev
 # 前端运行在 http://localhost:5173
 ```
@@ -192,8 +221,12 @@ npm run dev
 
 | 变量                | 必填 | 说明                                     |
 | ------------------- | ---- | ---------------------------------------- |
-| `OPENAI_API_KEY`  | 是   | LLM API 密钥（支持 Moonshot / 智谱 GLM） |
-| `OPENAI_API_BASE` | 否   | API 地址，不填则自动识别                 |
+| `OPENAI_API_KEY`  | 是   | LLM API 密钥；也兼容 `ZHIPU_API_KEY` / `ZAI_API_KEY` |
+| `OPENAI_API_BASE` | 否   | API 地址；默认使用智谱 `https://open.bigmodel.cn/api/paas/v4/` |
+| `ZHIPU_MODEL`     | 否   | 智谱模型名；默认 `glm-4-flash-250414` |
+| `DEEPSEEK_API_KEY` | 否  | DeepSeek 模式的天翼云 AppKey；也兼容 `CTYUN_APP_KEY` |
+| `DEEPSEEK_API_BASE` | 否 | DeepSeek 模式接口基址；默认 `https://wishub-x6.ctyun.cn/v1` |
+| `DEEPSEEK_MODEL` | 否 | DeepSeek 模式模型 ID；默认 `24625803b01f4f90b72abbe9d9cdf5cc` |
 | `DATABASE_URL`    | 否   | PostgreSQL 连接串，不填则使用 SQLite     |
 | `ADMIN_PASSWORD`  | 否   | 管理后台密码，不设则管理功能禁用         |
 | `JWT_SECRET_KEY`  | 否   | JWT 签名密钥，不填使用默认值             |
@@ -204,7 +237,7 @@ npm run dev
 | ------ | ------------------------------------------------- |
 | 前端   | Vue 3 + Vite, Element Plus, ECharts, Pinia, Axios |
 | 后端   | Flask, SQLAlchemy, Gunicorn (gthread)             |
-| AI     | LangChain, Moonshot / 智谱 GLM (OpenAI 兼容接口)  |
+| AI     | LangChain, 智谱 GLM, DeepSeek-V3.2-Pro（天翼云 OpenAI 兼容接口） |
 | 数据库 | PostgreSQL（生产） / SQLite（开发）               |
 | 部署   | Docker 多阶段构建, Zeabur                         |
 

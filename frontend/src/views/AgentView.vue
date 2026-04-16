@@ -3,7 +3,7 @@
     <h1 class="page-title">{{ $route.meta.title }}</h1>
     <!-- 未登录：显示提示 -->
     <div v-if="!isLoggedIn" class="module-card login-gate">
-      <div class="gate-icon">🔒</div>
+      <div class="gate-icon">🔐</div>
       <h3>请先登录</h3>
       <p>智能助理功能需要登录后才能使用</p>
       <div class="gate-actions">

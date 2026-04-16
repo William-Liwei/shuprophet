@@ -83,7 +83,7 @@
         <!-- BibTeX 显示弹窗 -->
         <el-dialog
           v-model="dialogVisible"
-          :title="`'${currentAlgoName}' 的 BibTeX 引用`"
+          :title="`${currentAlgoName} 的 BibTeX 引用`"
           width="80%"
           max-width="600px"
           append-to-body
@@ -129,8 +129,9 @@ const algorithms = ref([
     bibtex: `@inproceedings{li2026scatterfusion,
   title={ScatterFusion: A Hierarchical Scattering Transform Framework for Enhanced Time Series Forecasting},
   author={Li, Wei},
-  booktitle={IEEE International Conference on Acoustics, Speech, and Signal Processing},
-  year={2026}
+  booktitle={Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  year={2026},
+  note={Accepted}
 }`
   },
   {
@@ -148,8 +149,9 @@ const algorithms = ref([
     bibtex: `@inproceedings{li2026awgformer,
   title={AWGFormer: Adaptive Wavelet-Guided Transformer for Multi-resolution Time Series Forecasting},
   author={Li, Wei},
-  booktitle={IEEE International Conference on Acoustics, Speech, and Signal Processing},
-  year={2026}
+  booktitle={Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  year={2026},
+  note={Accepted}
 }`
   },
   {
