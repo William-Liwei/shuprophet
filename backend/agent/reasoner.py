@@ -8,7 +8,6 @@ import json
 import re
 import numpy as np
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 
@@ -18,26 +17,14 @@ from .prompts.system import SYSTEM_PROMPT
 from .prompts.react import REACT_PROMPT
 from .prompts.critic import CRITIC_PROMPT
 from .tools import ALL_TOOLS
+from utils.llm import build_chat_llm
 
 load_dotenv()
 
 
 def _init_llm():
     """Initialize LLM from environment."""
-    api_key = os.getenv("OPENAI_API_KEY", "")
-    api_base = os.getenv("OPENAI_API_BASE", "")
-    if "moonshot" in api_base:
-        model = "moonshot-v1-8k"
-    elif "bigmodel" in api_base:
-        model = "glm-4-flash"
-    else:
-        model = "glm-4-flash"
-        if not api_base:
-            api_base = "https://open.bigmodel.cn/api/paas/v4/"
-    return ChatOpenAI(
-        model_name=model, openai_api_key=api_key,
-        openai_api_base=api_base, temperature=0.3,
-    )
+    return build_chat_llm(temperature=0.3)
 
 
 class TSReasoner:  # 保留类名以兼容导入

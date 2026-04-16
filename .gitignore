@@ -4,6 +4,7 @@
 
 # --- Python / Backend ---
 /backend/venv/
+/backend/.venv/
 /backend/__pycache__/
 /backend/models/__pycache__/
 /backend/utils/__pycache__/
