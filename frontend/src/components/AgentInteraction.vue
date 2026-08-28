@@ -48,21 +48,25 @@
           <div v-if="msg.showBubble" class="click-bubble">{{ msg.bubbleText }}</div>
         </div>
         <div class="message-bubble">
-          <!-- 思考过程（可折叠） -->
-          <div v-if="msg.thinking" class="thinking-section">
-            <div class="thinking-header" @click="msg.thinkingExpanded = !msg.thinkingExpanded">
-              <span class="thinking-icon">💭</span>
-              <span>思考过程 ({{ msg.thinking.trajectory.length }}步)</span>
-              <span class="thinking-toggle">{{ msg.thinkingExpanded ? '▲ 收起' : '▼ 展开' }}</span>
+          <div v-if="msg.agentRun" class="execution-section">
+            <div class="execution-summary">
+              <span>鼠先知引擎</span>
+              <span>评估 {{ msg.agentRun.candidates_evaluated }} 条候选路径</span>
+              <span>置信度 {{ formatConfidence(msg.agentRun.confidence) }}</span>
             </div>
-            <div v-if="msg.thinkingExpanded" class="thinking-steps">
-              <div v-for="step in msg.thinking.trajectory" :key="step.step" class="thinking-step">
+            <div class="execution-header" @click="msg.agentRunExpanded = !msg.agentRunExpanded">
+              <el-icon><List /></el-icon>
+              <span>执行记录 ({{ msg.agentRun.trajectory.length }}步)</span>
+              <span class="execution-toggle">{{ msg.agentRunExpanded ? '收起' : '展开' }}</span>
+            </div>
+            <div v-if="msg.agentRunExpanded" class="execution-steps">
+              <div v-for="step in msg.agentRun.trajectory" :key="step.step" class="execution-step">
                 <div class="step-header">
                   <span class="step-num">{{ step.step }}</span>
                   <span class="step-tool">{{ step.tool }}</span>
                   <span class="step-time">{{ step.time }}s</span>
                 </div>
-                <div class="step-thought">{{ step.thought }}</div>
+                <div class="step-rationale">{{ step.rationale }}</div>
                 <div class="step-result">{{ step.result }}</div>
               </div>
             </div>
@@ -76,7 +80,7 @@
             <v-chart class="chart" :option="getChartOption(msg.chartData, msg.smartPrediction)" style="height: 350px;" autoresize/>
             <div v-if="msg.smartPrediction" class="smart-badge">
               <span class="badge-engine">{{ msg.smartPrediction.engine }}</span>
-              <span class="badge-confidence">置信度: {{ (msg.smartPrediction.confidence * 100).toFixed(0) }}%</span>
+              <span class="badge-confidence">置信度: {{ formatConfidence(msg.smartPrediction.confidence) }}</span>
             </div>
           </div>
         </div>
@@ -99,10 +103,14 @@
         <span>📎 {{ pendingFile.name }}</span>
         <span class="file-chip-remove" @click="removePendingFile">✕</span>
       </div>
+      <div v-if="pendingFile" class="run-options">
+        <span>预测步数</span>
+        <el-input-number v-model="forecastSteps" :min="1" :max="90" :step="1" size="small" />
+      </div>
       <div class="input-row">
         <el-input
           v-model="userInput"
-          :placeholder="pendingFile ? '输入附加说明（如：帮我深度分析一下）...' : '在这里输入消息...'"
+          :placeholder="pendingFile ? '可补充数据背景或分析目标' : '在这里输入消息...'"
           @keyup.enter="sendMessage"
           :disabled="isAgentTyping"
           clearable
@@ -140,7 +148,7 @@
 import { ref, nextTick, onMounted, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { marked } from 'marked';
-import { UploadFilled, Download } from '@element-plus/icons-vue'
+import { UploadFilled, Download, List } from '@element-plus/icons-vue'
 import request from '@/utils/request';
 import { useAuthStore } from '@/stores/auth';
 
@@ -164,6 +172,7 @@ const chatWindowRef = ref(null);
 const messages = ref([]);
 const sessionId = ref(`session_${Date.now()}_${Math.random()}`);
 const pendingFile = ref(null);
+const forecastSteps = ref(10);
 const fileInputRef = ref(null);
 const isBlinking = ref(false);
 const clickCounts = ref({});
@@ -179,7 +188,10 @@ const redeeming = ref(false);
 
 // --- 生命周期钩子 ---
 onMounted(() => {
-  sendMessage('你好', true);
+  messages.value.push({
+    sender: 'agent',
+    text: '你好，我是**鼠先知时序分析Agent**。上传包含时间/索引列与数值列的CSV，即可开始分析。'
+  });
   startBlinking();
   fetchCredits();
   window.addEventListener('mousemove', handleMouseMove);
@@ -275,6 +287,7 @@ const sendMessage = async (initialMessage = '', isGreeting = false) => {
       const formData = new FormData();
       formData.append('file', currentFile);
       formData.append('message', textToSend || '');
+      formData.append('steps', String(forecastSteps.value));
       const response = await request.post('/agent-upload-predict', formData);
       const data = response.data;
       if (data.error) {
@@ -286,8 +299,8 @@ const sendMessage = async (initialMessage = '', isGreeting = false) => {
           isReport: true,
           chartData: data.chart_data,
           smartPrediction: data.smart_prediction,
-          thinking: data.thinking,
-          thinkingExpanded: false,
+          agentRun: data.agent_run,
+          agentRunExpanded: false,
         });
       }
     } else {
@@ -340,6 +353,11 @@ const onFileSelected = (e) => {
 
 const removePendingFile = () => {
   pendingFile.value = null;
+};
+
+const formatConfidence = (value) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? `${Math.round(numeric * 100)}%` : '待校验';
 };
 
 // 分享对话到社区
@@ -424,7 +442,7 @@ const exportReport = async () => {
         </div>
         ${predictionMsg.chartData ? '<div style="margin: 30px 0;"><h2 style="font-size: 18px; color: #1d1d1f; margin-bottom: 15px;">预测图表</h2><div id="chart-placeholder" style="width: 100%; height: 300px; background: #f5f5f7; border-radius: 8px;"></div></div>' : ''}
         <div style="margin-top: 30px; padding: 15px; background: #f5f5f7; border-radius: 8px;">
-          <p style="font-size: 11px; color: #86868b; margin: 0; line-height: 1.6;">智能预测引擎基于数据特征自动路由选择最优算法，包含统计模型与深度学习模型的集成预测。</p>
+          <p style="font-size: 11px; color: #86868b; margin: 0; line-height: 1.6;">鼠先知引擎依据数据画像与时间留出验证自动选择预测路径，并执行独立统计校验。</p>
         </div>
       </div>
     `;
@@ -491,19 +509,19 @@ const doRedeem = async () => {
 
 // ECharts图表配置 (无变化)
 const getChartOption = (chartData, smartPrediction) => {
-  const legends = ['历史数据', 'ARIMA预测值'];
+  const legends = ['历史数据', '统计参考'];
   const series = [
     { name: '历史数据', type: 'line', smooth: true, showSymbol: false, data: chartData.history_data, itemStyle: { color: '#38bdf8' } },
-    { name: 'ARIMA预测值', type: 'line', smooth: true, showSymbol: false, data: chartData.forecast_data, lineStyle: { type: 'dashed' }, itemStyle: { color: '#67c23a' } }
+    { name: '统计参考', type: 'line', smooth: true, showSymbol: false, data: chartData.forecast_data, lineStyle: { type: 'dashed' }, itemStyle: { color: '#67c23a' } }
   ];
 
   if (smartPrediction && smartPrediction.predictions && chartData.forecast_data) {
-    legends.push('智能预测引擎');
+    legends.push('鼠先知引擎');
     const smartData = chartData.forecast_data.map((point, i) =>
       i < smartPrediction.predictions.length ? [point[0], smartPrediction.predictions[i]] : null
     ).filter(Boolean);
     series.push({
-      name: '智能预测引擎', type: 'line', smooth: true, showSymbol: false,
+      name: '鼠先知引擎', type: 'line', smooth: true, showSymbol: false,
       data: smartData, lineStyle: { type: 'dotted', width: 2 }, itemStyle: { color: '#f59e0b' }
     });
   }
@@ -874,15 +892,37 @@ const getChartOption = (chartData, smartPrediction) => {
   color: #e74c3c;
 }
 
-/* 思考过程样式 */
-.thinking-section {
+.run-options {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.run-options :deep(.el-input-number) {
+  width: 112px;
+}
+
+/* Agent执行记录 */
+.execution-section {
   margin-bottom: 12px;
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
   background: #fafafa;
 }
-.thinking-header {
+.execution-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 9px 12px;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+}
+.execution-header {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -893,29 +933,26 @@ const getChartOption = (chartData, smartPrediction) => {
   user-select: none;
   transition: background 0.2s;
 }
-.thinking-header:hover {
+.execution-header:hover {
   background: #f0f0f0;
 }
-.thinking-icon {
-  font-size: 16px;
-}
-.thinking-toggle {
+.execution-toggle {
   margin-left: auto;
   font-size: 12px;
   color: #9ca3af;
 }
-.thinking-steps {
+.execution-steps {
   padding: 0 12px 10px;
   max-height: 300px;
   overflow-y: auto;
 }
-.thinking-step {
+.execution-step {
   padding: 6px 0;
   border-bottom: 1px dashed #e5e7eb;
   font-size: 12px;
   line-height: 1.5;
 }
-.thinking-step:last-child {
+.execution-step:last-child {
   border-bottom: none;
 }
 .step-header {
@@ -946,7 +983,7 @@ const getChartOption = (chartData, smartPrediction) => {
   color: #9ca3af;
   font-size: 11px;
 }
-.step-thought {
+.step-rationale {
   color: #6b7280;
   padding-left: 28px;
 }

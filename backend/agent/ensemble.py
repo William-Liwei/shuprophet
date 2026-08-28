@@ -1,11 +1,8 @@
 """
 置信度感知集成预测模块
 
-Strategy: conservative adaptive selection with robustness prior.
-ARIMA is the default; only override when CV evidence is overwhelming.
-
-智能预测引擎：基于数据特征自动路由选择最优算法
-当前使用统计模型，预留深度学习模型接口
+Strategy: compare lightweight statistical forecasters on a temporal holdout,
+prefer the lowest validation error, and keep ARIMA when scores are effectively tied.
 """
 
 import numpy as np
@@ -13,21 +10,12 @@ from .tools.forecasters import (
     arima_forecast, ets_forecast, theta_forecast, linear_forecast
 )
 
-# 当前使用的统计模型
 FORECASTERS = [
     ("arima", arima_forecast),
     ("ets", ets_forecast),
     ("theta", theta_forecast),
     ("linear", linear_forecast),
 ]
-
-# 预留深度学习模型接口（未来扩展）
-# DL_FORECASTERS = [
-#     ("awgformer", awgformer_forecast),
-#     ("scatterfusion", scatterfusion_forecast),
-#     ("swift", swift_forecast),
-#     # 等等...
-# ]
 
 DEFAULT_MODEL = "arima"
 
@@ -49,17 +37,21 @@ def ensemble_predict(data: list, steps: int = 10) -> dict:
     if not results:
         return {"predictions": [], "confidence": 0.1, "method": "none"}
 
-    # 2. CV model selection (conservative: prefer ARIMA unless clearly beaten)
+    # 2. Select a model on a temporal holdout.
     chosen, cv_residuals, cv_errors = _select_model(y, results)
 
     preds_raw = np.array(results[chosen], dtype=float)
     preds = [round(float(v), 4) for v in preds_raw]
     ci_lower, ci_upper = _bootstrap_ci(y, preds)
 
+    cv_confidence = _cv_confidence(y, chosen, cv_errors)
+
     return {
         "tool": "ensemble_predict",
         "predictions": preds,
+        "selected_model": chosen,
         "weights": {chosen: 1.0},
+        "cv_confidence": cv_confidence,
         "ci_lower": ci_lower,
         "ci_upper": ci_upper,
         "models_used": list(results.keys()),
@@ -69,11 +61,7 @@ def ensemble_predict(data: list, steps: int = 10) -> dict:
 
 
 def _select_model(y, results):
-    """Conservative model selection: ARIMA unless CV strongly disagrees.
-
-    Only switch away from ARIMA if another model has <0.67x ARIMA's error
-    (i.e., 50%+ better). This prevents noisy CV from picking bad models.
-    """
+    """Select on a temporal holdout and use ARIMA as a near-tie breaker."""
     n = len(y)
     val_size = max(8, n // 5)
     train_end = n - val_size
@@ -103,16 +91,15 @@ def _select_model(y, results):
         chosen = DEFAULT_MODEL if DEFAULT_MODEL in results else list(results.keys())[0]
         return chosen, [], {}
 
-    arima_err = errors.get(DEFAULT_MODEL, 1e6)
     best_name = min(errors, key=errors.get)
     best_err = errors[best_name]
+    arima_err = errors.get(DEFAULT_MODEL)
 
-    # Only override ARIMA if another model is >80% better on CV
-    # (practically never — ARIMA is the safest univariate forecaster)
-    if best_name != DEFAULT_MODEL and best_err < arima_err * 0.2:
-        chosen = best_name
+    # Prefer the simpler default only when it is within 5% of the best score.
+    if arima_err is not None and arima_err <= best_err * 1.05:
+        chosen = DEFAULT_MODEL
     else:
-        chosen = DEFAULT_MODEL if DEFAULT_MODEL in errors else best_name
+        chosen = best_name
 
     # CV residuals for post-predict correction
     cv_residuals = []
@@ -121,6 +108,20 @@ def _select_model(y, results):
         cv_residuals = (p - actual[:len(p)]).tolist()
 
     return chosen, cv_residuals, {k: round(v, 6) for k, v in errors.items()}
+
+
+def _cv_confidence(y, chosen, errors):
+    """Convert normalized holdout RMSE into a bounded descriptive score."""
+    if chosen not in errors:
+        return 0.35
+
+    scale = float(np.std(y))
+    if scale < 1e-10:
+        return 0.2
+
+    normalized_rmse = float(np.sqrt(errors[chosen]) / scale)
+    score = 1.0 / (1.0 + normalized_rmse)
+    return round(max(0.1, min(0.95, score)), 3)
 
 
 def _bootstrap_ci(y, preds, n_boot=200, alpha=0.05):

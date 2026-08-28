@@ -6,6 +6,7 @@ for LLM reasoning without requiring token-expensive raw data processing.
 """
 
 import numpy as np
+import warnings
 from scipy import stats
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
@@ -148,7 +149,9 @@ def stationarity_test(data: list) -> dict:
 
     # ADF test (H0: unit root exists = non-stationary)
     try:
-        adf_stat, adf_p, adf_lags, _, adf_crit, _ = adfuller(y, autolag="AIC")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            adf_stat, adf_p, adf_lags, _, adf_crit, _ = adfuller(y, autolag="AIC")
         adf_stationary = adf_p < 0.05
     except Exception:
         adf_stat, adf_p, adf_stationary = 0, 1, False
@@ -156,7 +159,9 @@ def stationarity_test(data: list) -> dict:
 
     # KPSS test (H0: stationary)
     try:
-        kpss_stat, kpss_p, kpss_lags, kpss_crit = kpss(y, regression="c", nlags="auto")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            kpss_stat, kpss_p, kpss_lags, kpss_crit = kpss(y, regression="c", nlags="auto")
         kpss_stationary = kpss_p > 0.05
     except Exception:
         kpss_stat, kpss_p, kpss_stationary = 0, 0, True

@@ -11,6 +11,7 @@
 *.pyc
 .env
 /backend/shu_prophet.db
+/backend/data/
 /backend/avatars/
 /backend/migrate.py
 /backend/generate_codes.py

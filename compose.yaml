@@ -1,0 +1,27 @@
+services:
+  shuprophet:
+    build:
+      context: .
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      DATA_DIR: /data
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENAI_API_BASE: "${OPENAI_API_BASE:-}"
+      OPENAI_MODEL: "${OPENAI_MODEL:-}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-}"
+      JWT_SECRET_KEY: "${JWT_SECRET_KEY:-}"
+      DATABASE_URL: "${DATABASE_URL:-}"
+      WEB_CONCURRENCY: "${WEB_CONCURRENCY:-1}"
+    volumes:
+      - shuprophet-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  shuprophet-data:

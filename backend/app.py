@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
 import os
+import tempfile
 import pandas as pd
 import numpy as np
 from scipy.signal import savgol_filter
@@ -8,22 +9,27 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 import time
 from models.arima_predictor import predict_with_arima
 
-from werkzeug.utils import secure_filename
 from models.prediction_tool import analyze_and_predict
-from models.agent_chain import get_conversational_response, generate_standalone_report, smart_predict
+from models.agent_chain import get_conversational_response, generate_standalone_report
 from agent.reasoner import TSReasoner
+from agent.public import public_agent_result
 from utils.auth_utils import login_required, decode_token
 from blueprints.credits import check_and_consume_chat
 
 from extensions import db, SECRET_KEY, DATABASE_URL
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DATA_DIR = os.environ.get('DATA_DIR') or os.path.join(BASE_DIR, 'data')
+os.makedirs(DATA_DIR, exist_ok=True)
+
 # --- 初始化 Flask 应用 ---
 app = Flask(__name__, static_folder='../dist')
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL or (
-    'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'shu_prophet.db')
+    'sqlite:///' + os.path.join(DATA_DIR, 'shu_prophet.db')
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 CORS(app)
 
 # 初始化数据库
@@ -64,10 +70,40 @@ with app.app_context():
         db.session.rollback()
 
 # --- 定义路径 ---
-STATIC_DATA_DIR = 'static_data'
-UPLOADS_DIR = 'uploads'
+STATIC_DATA_DIR = os.path.join(BASE_DIR, 'static_data')
+UPLOADS_DIR = os.path.join(BASE_DIR, 'uploads')
 if not os.path.exists(UPLOADS_DIR):
     os.makedirs(UPLOADS_DIR)
+
+
+def _save_csv_upload(file_storage):
+    """Validate and persist an uploaded CSV under a collision-free name."""
+    filename = (file_storage.filename or '').lower()
+    if not filename.endswith('.csv'):
+        raise ValueError('仅支持CSV文件')
+
+    fd, filepath = tempfile.mkstemp(suffix='.csv', dir=UPLOADS_DIR)
+    os.close(fd)
+    file_storage.save(filepath)
+    return filepath
+
+
+def _remove_upload(filepath):
+    if filepath and os.path.isfile(filepath):
+        try:
+            os.remove(filepath)
+        except OSError:
+            pass
+
+
+def _read_uploaded_series(filepath):
+    frame = pd.read_csv(filepath, dtype=str, encoding='utf-8-sig')
+    if frame.shape[1] < 2:
+        raise ValueError('CSV文件必须至少包含两列')
+    values = pd.to_numeric(frame.iloc[:, 1], errors='coerce').dropna().tolist()
+    if len(values) < 10:
+        raise ValueError(f'有效数据点过少（{len(values)}个），至少需要10个')
+    return values
 
 # --- 数据预处理与计算函数 ---
 def _sanitize(obj):
@@ -92,43 +128,15 @@ def smooth(y, win=11, poly=3):
         return y
     return savgol_filter(y, window_length=win, polyorder=poly)
 
-# --- 思考模式辅助函数 ---
-_THINK_KEYWORDS = ['思考', '深度分析', '详细分析', '推理', '深入', '仔细',
-                   'think', 'analyze', 'deep', 'reason', '为什么', '原因',
-                   '分析一下', '帮我看看', '诊断']
-
-def _should_think(message: str) -> bool:
-    """根据用户消息判断是否启用思考模式。"""
-    if not message:
-        return False
-    msg = message.lower()
-    return any(kw in msg for kw in _THINK_KEYWORDS)
-
-def _format_trajectory(trajectory: dict) -> list:
-    """将推理轨迹格式化为前端可展示的结构。"""
-    steps = trajectory.get("steps", [])
-    formatted = []
-    for s in steps:
-        obs = s.get("observation", {})
-        # 生成简洁的结果摘要
-        summary_parts = []
-        for k, v in obs.items():
-            if k == "tool":
-                continue
-            sv = str(v)
-            if len(sv) > 50:
-                sv = sv[:47] + "..."
-            summary_parts.append(f"{k}={sv}")
-        formatted.append({
-            "step": s["step"],
-            "thought": s["thought"],
-            "tool": s["action"],
-            "result": ", ".join(summary_parts) if summary_parts else "done",
-            "time": s.get("timestamp", 0)
-        })
-    return formatted
-
 # --- API 路由 ---
+
+@app.route('/api/health', methods=['GET'])
+def health():
+    return jsonify({
+        "status": "ok",
+        "service": "shu-prophet",
+        "agent": "ready",
+    })
 
 @app.route('/api/datasets', methods=['GET'])
 def get_datasets():
@@ -261,12 +269,11 @@ def agent_message():
 
     return jsonify({"reply": agent_reply})
 
-# --- 智能助理文件处理API（支持思考模式）---
+# --- 工具Agent文件处理API ---
 @app.route('/api/agent-upload-predict', methods=['POST'])
 @login_required
 def agent_upload_predict():
-    """智能助理文件处理API: 接收文件+可选消息，支持思考模式深度推理。"""
-    # 检查用量并消耗配额
+    """Run the complete analysis, model selection, and validation workflow."""
     ok, err = check_and_consume_chat(g.user_id)
     if not ok:
         return jsonify({"error": err}), 403
@@ -278,62 +285,58 @@ def agent_upload_predict():
     if file.filename == '':
         return jsonify({"error": "未选择任何文件"}), 400
 
-    # 获取用户附带的文本消息
     user_message = request.form.get('message', '')
+    try:
+        forecast_steps = int(request.form.get('steps', 10))
+    except (TypeError, ValueError):
+        return jsonify({"error": "预测步数必须是整数"}), 400
+    if not 1 <= forecast_steps <= 90:
+        return jsonify({"error": "预测步数必须在1到90之间"}), 400
 
-    if file:
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(UPLOADS_DIR, filename)
-        file.save(filepath)
+    filepath = None
+    try:
+        filepath = _save_csv_upload(file)
+        analysis_result = analyze_and_predict(filepath, steps=forecast_steps)
+        if "error" in analysis_result:
+            return jsonify(analysis_result), 400
 
-        try:
-            # 1. ARIMA 基础分析
-            analysis_result = analyze_and_predict(filepath)
-            report_markdown = generate_standalone_report(analysis_result, user_message)
-        except Exception as e:
-            return jsonify({"error": f"数据分析失败: {str(e)}"}), 500
+        data_y = analysis_result["summary_stats"]["historical_y"]
+        agent_result = TSReasoner().predict(data_y, steps=forecast_steps)
+        report_markdown = generate_standalone_report(
+            analysis_result,
+            user_message,
+            agent_result,
+        )
 
-        # 2. 智能预测引擎
-        smart_result = None
-        summary = analysis_result.get("summary_stats", {})
-        data_y = summary.get("historical_y", [])
-        forecast_steps = summary.get("forecast_steps", 10)
-
-        if len(data_y) >= 10:
-            try:
-                smart_result = smart_predict(data_y, steps=forecast_steps)
-            except Exception:
-                pass
-
-        # 3. 思考模式：深度推理分析
-        thinking_result = None
-        if _should_think(user_message) and len(data_y) >= 10:
-            try:
-                reasoner = TSReasoner()
-                raw = reasoner.predict(data_y, steps=forecast_steps)
-                thinking_result = _sanitize({
-                    "trajectory": _format_trajectory(raw.get("trajectory", {})),
-                    "data_profile": raw.get("data_profile", {}),
-                    "predictions": raw.get("predictions", []),
-                    "confidence": raw.get("confidence", {}),
-                })
-            except Exception:
-                pass
-
+        public_agent = public_agent_result(agent_result)
         response_data = {
             "report": report_markdown,
-            "chart_data": analysis_result.get("chart_data", None),
-            "smart_prediction": smart_result,
-            "thinking": thinking_result,
+            "chart_data": analysis_result.get("chart_data"),
+            "smart_prediction": {
+                "engine": public_agent["engine"],
+                "predictions": public_agent["predictions"],
+                "prediction_interval": public_agent["prediction_interval"],
+                "confidence": public_agent["confidence"],
+            },
+            "agent_run": {
+                "trajectory": public_agent["trajectory"],
+                "candidates_evaluated": public_agent["candidates_evaluated"],
+                "selection_basis": public_agent["selection_basis"],
+                "validation": public_agent["validation"],
+                "confidence": public_agent["confidence"],
+            },
         }
-
         return jsonify(_sanitize(response_data))
-
-    return jsonify({"error": "文件上传失败"}), 500
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": f"Agent执行失败: {str(exc)}"}), 500
+    finally:
+        _remove_upload(filepath)
 
 @app.route('/api/smart-predict', methods=['POST'])
 def smart_predict_api():
-    """【鼠先知智能预测引擎API】: 接收文件，执行三阶段Agent协作预测。"""
+    """Execute the tool Agent and return a routing-safe public result."""
     if 'file' not in request.files:
         return jsonify({"error": "请求中未找到文件部分"}), 400
 
@@ -342,33 +345,24 @@ def smart_predict_api():
         return jsonify({"error": "未选择任何文件"}), 400
 
     steps = request.form.get('steps', 10, type=int)
+    if steps is None or not 1 <= steps <= 90:
+        return jsonify({"error": "预测步数必须在1到90之间"}), 400
 
-    if file:
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(UPLOADS_DIR, filename)
-        file.save(filepath)
-
-        try:
-            df = pd.read_csv(filepath, dtype=str, encoding='utf-8-sig')
-            if df.shape[1] < 2:
-                return jsonify({"error": "CSV文件必须至少包含两列"}), 400
-
-            y_col = df.columns[1]
-            data_y = pd.to_numeric(df[y_col], errors='coerce').dropna().tolist()
-
-            if len(data_y) < 10:
-                return jsonify({"error": f"有效数据点过少({len(data_y)}个)，至少需要10个"}), 400
-
-            result = smart_predict(data_y, steps=steps)
-            return jsonify(result)
-        except Exception as e:
-            return jsonify({"error": f"预测失败: {str(e)}"}), 500
-
-    return jsonify({"error": "文件上传失败"}), 500
+    filepath = None
+    try:
+        filepath = _save_csv_upload(file)
+        result = TSReasoner().predict(_read_uploaded_series(filepath), steps=steps)
+        return jsonify(_sanitize(public_agent_result(result)))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": f"预测失败: {str(exc)}"}), 500
+    finally:
+        _remove_upload(filepath)
 
 @app.route('/api/agent-reason', methods=['POST'])
 def agent_reason():
-    """【思考模式推理API】: 执行完整推理循环，返回预测结果与推理轨迹。"""
+    """Execute the auditable Agent workflow without exposing routing details."""
     if 'file' not in request.files:
         return jsonify({"error": "请求中未找到文件部分"}), 400
 
@@ -377,30 +371,20 @@ def agent_reason():
         return jsonify({"error": "未选择任何文件"}), 400
 
     steps = request.form.get('steps', 10, type=int)
+    if steps is None or not 1 <= steps <= 90:
+        return jsonify({"error": "预测步数必须在1到90之间"}), 400
 
-    if file:
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(UPLOADS_DIR, filename)
-        file.save(filepath)
-
-        try:
-            df = pd.read_csv(filepath, dtype=str, encoding='utf-8-sig')
-            if df.shape[1] < 2:
-                return jsonify({"error": "CSV文件必须至少包含两列"}), 400
-
-            y_col = df.columns[1]
-            data_y = pd.to_numeric(df[y_col], errors='coerce').dropna().tolist()
-
-            if len(data_y) < 10:
-                return jsonify({"error": f"有效数据点过少({len(data_y)}个)，至少需要10个"}), 400
-
-            reasoner = TSReasoner()
-            result = reasoner.predict(data_y, steps=steps)
-            return jsonify(_sanitize(result))
-        except Exception as e:
-            return jsonify({"error": f"推理失败: {str(e)}"}), 500
-
-    return jsonify({"error": "文件上传失败"}), 500
+    filepath = None
+    try:
+        filepath = _save_csv_upload(file)
+        result = TSReasoner().predict(_read_uploaded_series(filepath), steps=steps)
+        return jsonify(_sanitize(public_agent_result(result)))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": f"Agent执行失败: {str(exc)}"}), 500
+    finally:
+        _remove_upload(filepath)
 
 # --- 服务前端静态文件的路由 ---
 # 这个路由捕获所有不是API的请求

@@ -1,218 +1,205 @@
-"""
-鼠先知 思考模式 — 核心推理引擎
-Thought → Action → Observation 推理循环，支持动态工具选择与自适应分析。
-"""
+"""Lightweight, auditable time-series tool agent."""
 
-import os
-import json
-import re
+import math
+
 import numpy as np
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
 
-from .memory import ReasoningMemory
 from .ensemble import ensemble_predict
-from .prompts.system import SYSTEM_PROMPT
-from .prompts.react import REACT_PROMPT
-from .prompts.critic import CRITIC_PROMPT
+from .memory import ReasoningMemory
 from .tools import ALL_TOOLS
 
-load_dotenv()
 
+class TSReasoner:
+    """Run a goal-directed analysis, forecasting, and validation workflow."""
 
-def _init_llm():
-    """Initialize LLM from environment."""
-    api_key = os.getenv("OPENAI_API_KEY", "")
-    api_base = os.getenv("OPENAI_API_BASE", "")
-    if "moonshot" in api_base:
-        model = "moonshot-v1-8k"
-    elif "bigmodel" in api_base:
-        model = "glm-4-flash"
-    else:
-        model = "glm-4-flash"
-        if not api_base:
-            api_base = "https://open.bigmodel.cn/api/paas/v4/"
-    return ChatOpenAI(
-        model_name=model, openai_api_key=api_key,
-        openai_api_base=api_base, temperature=0.3,
-    )
-
-
-class TSReasoner:  # 保留类名以兼容导入
-    """Core ReAct agent for time series analysis and forecasting."""
-
-    def __init__(self, max_steps: int = 8, max_critic_rounds: int = 0,
-                 enable_correction: bool = False):
-        self.llm = _init_llm()
-        self.max_steps = max_steps
-        self.max_critic_rounds = max_critic_rounds
-        self.enable_correction = enable_correction
+    def __init__(self, max_analysis_steps: int = 8):
+        self.max_analysis_steps = max_analysis_steps
         self.tools = ALL_TOOLS
 
     def predict(self, data_y: list, steps: int = 10) -> dict:
-        """完整推理流程: 统计画像 → 推理分析 → 集成预测 → 修正。"""
+        data = self._validate_input(data_y, steps)
         memory = ReasoningMemory()
-        data = list(data_y)
 
-        # Phase 1: 统计画像
-        profile = self._ground(data, memory)
+        profile = self._build_profile(data, memory)
+        self._run_adaptive_analysis(data, profile, memory)
 
-        # Phase 2: 推理分析
-        self._reason(data, steps, profile, memory)
-
-        # Phase 3: 集成预测
-        ensemble_result = ensemble_predict(data, steps=steps)
-        predictions = ensemble_result.get("predictions", [])
-
+        forecast = ensemble_predict(data, steps=steps)
+        predictions = forecast.get("predictions", [])
         if not predictions:
-            predictions = self._fallback(data, steps)
+            raise ValueError("没有预测器成功生成结果")
 
         memory.add_step(
-            "Ensemble complete. Applying residual correction.",
-            "ensemble_predict", {"steps": steps},
-            {"weights": ensemble_result.get("weights", {})},
+            "依据留出集误差选择预测器，并在完整序列上生成未来值。",
+            "forecast_model_selection",
+            {"steps": steps},
+            {
+                "selected_model": forecast.get("selected_model"),
+                "models_compared": forecast.get("models_used", []),
+                "cv_errors": forecast.get("cv_errors", {}),
+            },
         )
 
-        # Phase 4: 残差修正
-        correction_log = []
-        if self.enable_correction:
-            cv_residuals = ensemble_result.get("cv_residuals", [])
-            predictions, correction_log = self._residual_correction(
-                data, predictions, steps, cv_residuals, memory
-            )
+        validation = self._validate_forecast(data, predictions, memory)
+        confidence = self._confidence_score(forecast, validation)
 
         return {
-            "engine": "思考模式",
+            "engine": "SHU Prophet Tool Agent",
             "predictions": predictions,
-            "confidence": ensemble_result.get("weights", {}),
-            "ci_lower": ensemble_result.get("ci_lower", []),
-            "ci_upper": ensemble_result.get("ci_upper", []),
+            "prediction_interval": {
+                "lower": forecast.get("ci_lower", []),
+                "upper": forecast.get("ci_upper", []),
+            },
+            "selected_model": forecast.get("selected_model", "unknown"),
+            "models_used": forecast.get("models_used", []),
+            "cv_errors": forecast.get("cv_errors", {}),
+            "confidence": confidence,
             "data_profile": profile,
+            "validation": validation,
             "trajectory": memory.to_dict(),
-            "critic_log": correction_log,
             "steps": steps,
         }
 
-    def _ground(self, data: list, memory: ReasoningMemory) -> dict:
-        """Phase 1: 统计画像 — 零成本特征提取。"""
+    @staticmethod
+    def _validate_input(data_y: list, steps: int) -> list:
+        if not 1 <= int(steps) <= 90:
+            raise ValueError("预测步数必须在1到90之间")
+
+        try:
+            data = [float(value) for value in data_y]
+        except (TypeError, ValueError) as exc:
+            raise ValueError("时间序列必须全部为数值") from exc
+
+        if len(data) < 10:
+            raise ValueError("至少需要10个有效数据点")
+        if not all(math.isfinite(value) for value in data):
+            raise ValueError("时间序列包含无穷值或非数值")
+        if float(np.std(data)) < 1e-12:
+            raise ValueError("时间序列为常数，无法进行有效的模型比较")
+        return data
+
+    def _build_profile(self, data: list, memory: ReasoningMemory) -> dict:
         profile = {}
-
-        # Always run these core tools
-        core_tools = ["trend_analysis", "volatility_analysis",
-                      "stationarity_test", "correlation_analysis"]
-
-        for name in core_tools:
-            tool = self.tools.get(name)
-            if tool:
-                try:
-                    result = tool["fn"](data)
-                    profile[name] = result
-                    memory.add_step(
-                        f"Grounding: run {name} for baseline profile.",
-                        name, {}, result,
-                    )
-                except Exception:
-                    pass
-
+        core_tools = (
+            "trend_analysis",
+            "volatility_analysis",
+            "stationarity_test",
+            "correlation_analysis",
+        )
+        for tool_name in core_tools:
+            result = self._run_tool(tool_name, data)
+            if result is None:
+                continue
+            profile[tool_name] = result
+            memory.add_step(
+                "建立基础数据画像。",
+                tool_name,
+                {},
+                result,
+            )
         return profile
 
-    def _reason(self, data: list, steps: int,
-                profile: dict, memory: ReasoningMemory):
-        """Phase 2: 推理循环 — 自适应工具选择。"""
-        # Decide which additional tools to run based on profile
-        extra_tools = self._select_tools(profile)
-
-        for tool_name in extra_tools:
-            if len(memory) >= self.max_steps:
+    def _run_adaptive_analysis(
+        self,
+        data: list,
+        profile: dict,
+        memory: ReasoningMemory,
+    ) -> None:
+        selected = self._select_analysis_tools(profile)
+        for tool_name, rationale in selected:
+            if len(memory) >= self.max_analysis_steps:
                 break
+            result = self._run_tool(tool_name, data)
+            if result is None:
+                continue
+            profile[tool_name] = result
+            memory.add_step(rationale, tool_name, {}, result)
+
+    def _select_analysis_tools(self, profile: dict) -> list:
+        selected = []
+        volatility = profile.get("volatility_analysis", {})
+        correlation = profile.get("correlation_analysis", {})
+        stationarity = profile.get("stationarity_test", {})
+
+        if volatility.get("level") == "high":
+            selected.extend([
+                ("wavelet_decomposition", "波动性较高，检查不同时间尺度上的能量分布。"),
+                ("anomaly_detection", "波动性较高，使用多方法共识检查异常点。"),
+            ])
+
+        if correlation.get("has_seasonality"):
+            selected.extend([
+                ("fft_analysis", "自相关显示潜在周期，使用频谱工具确认主周期。"),
+                ("seasonal_decompose", "检测到潜在季节性，分离趋势、季节与残差。"),
+            ])
+
+        if stationarity.get("verdict") in {
+            "non_stationary",
+            "difference_stationary",
+        }:
+            selected.append(
+                ("difference_transform", "平稳性检验提示需要差分，检查差分后的统计特征。")
+            )
+
+        selected.append(
+            ("changepoint_detection", "检查结构突变，避免用单一稳定机制解释整段序列。")
+        )
+
+        deduplicated = []
+        seen = set(profile)
+        for tool_name, rationale in selected:
+            if tool_name not in seen:
+                deduplicated.append((tool_name, rationale))
+                seen.add(tool_name)
+        return deduplicated
+
+    def _validate_forecast(
+        self,
+        data: list,
+        predictions: list,
+        memory: ReasoningMemory,
+    ) -> dict:
+        validation = {}
+        for tool_name in (
+            "prediction_range_check",
+            "trend_consistency_check",
+            "confidence_scoring",
+        ):
             tool = self.tools.get(tool_name)
             if not tool:
                 continue
             try:
-                result = tool["fn"](data)
-                thought = f"Profile suggests running {tool_name}: {tool['description']}"
-                memory.add_step(thought, tool_name, {}, result)
-                profile[tool_name] = result
+                result = tool["fn"](data, predictions)
             except Exception:
-                pass
-
-    def _select_tools(self, profile: dict) -> list:
-        """根据数据画像自适应选择分析工具。"""
-        selected = []
-
-        vol = profile.get("volatility_analysis", {})
-        corr = profile.get("correlation_analysis", {})
-        stat = profile.get("stationarity_test", {})
-
-        # High volatility → wavelet + anomaly
-        if vol.get("level") == "high":
-            selected.extend(["wavelet_decomposition", "anomaly_detection"])
-
-        # Strong periodicity → FFT + periodogram
-        if corr.get("has_seasonality"):
-            selected.extend(["fft_analysis", "seasonal_decompose"])
-
-        # Non-stationary → difference transform
-        if stat.get("verdict") in ("non_stationary", "difference_stationary"):
-            selected.append("difference_transform")
-
-        # Always useful
-        if "changepoint_detection" not in profile:
-            selected.append("changepoint_detection")
-
-        # Deduplicate and skip already-run tools
-        seen = set(profile.keys())
-        return [t for t in dict.fromkeys(selected) if t not in seen]
-
-    def _residual_correction(self, data, predictions, steps,
-                              cv_residuals, memory):
-        """Phase 4: Post-Predict — mean bias correction only.
-
-        Only subtract the MEAN of CV residuals as a constant.
-        Individual residuals are too noisy to transfer across horizons.
-        """
-        correction_log = []
-
-        if not cv_residuals or len(cv_residuals) < 2:
+                continue
+            validation[tool_name] = result
             memory.add_step(
-                "No CV residuals available, skipping post-predict.",
-                "post_predict", {}, {"applied": False}
+                "对预测结果执行独立统计校验。",
+                tool_name,
+                {},
+                result,
             )
-            return predictions, correction_log
+        return validation
 
-        res = np.array(cv_residuals, dtype=float)
-        mean_bias = float(np.mean(res))
-
-        # Only correct if bias is meaningful (|mean| > 0.01)
-        if abs(mean_bias) < 0.01:
-            memory.add_step(
-                f"Mean bias too small ({mean_bias:+.4f}), skipping.",
-                "post_predict", {}, {"applied": False, "mean_bias": round(mean_bias, 4)}
-            )
-            return predictions, correction_log
-
-        preds = np.array(predictions, dtype=float)
-        corrected = preds - mean_bias
-
-        log_entry = {
-            "applied": True,
-            "mean_bias": round(mean_bias, 4),
-        }
-        correction_log.append(log_entry)
-        memory.add_step(
-            f"Post-predict: subtracted mean bias {mean_bias:+.4f}.",
-            "post_predict", {}, log_entry,
-        )
-
-        return [round(float(v), 4) for v in corrected], correction_log
+    def _run_tool(self, tool_name: str, data: list):
+        tool = self.tools.get(tool_name)
+        if not tool:
+            return None
+        try:
+            return tool["fn"](data)
+        except Exception:
+            return None
 
     @staticmethod
-    def _fallback(data: list, steps: int) -> list:
-        """Linear extrapolation fallback."""
-        y = np.array(data, dtype=float)
-        x = np.arange(len(y))
-        slope, intercept = np.polyfit(x, y, 1)
-        return [round(float(slope * (len(y) + i) + intercept), 4)
-                for i in range(steps)]
+    def _confidence_score(forecast: dict, validation: dict) -> float:
+        cv_score = float(forecast.get("cv_confidence", 0.35))
+        validation_score = float(
+            validation.get("confidence_scoring", {}).get("confidence", 0.5)
+        )
+        score = 0.65 * cv_score + 0.35 * validation_score
+
+        if not validation.get("prediction_range_check", {}).get("pass", True):
+            score *= 0.85
+        if not validation.get("trend_consistency_check", {}).get("consistent", True):
+            score *= 0.9
+
+        return round(max(0.1, min(0.95, score)), 3)

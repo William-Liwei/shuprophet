@@ -1,0 +1,16 @@
+.git
+.gitignore
+.env
+.claude
+.vscode
+**/__pycache__
+**/*.pyc
+**/node_modules
+frontend/dist
+backend/shu_prophet.db
+backend/data
+backend/uploads
+uploads
+*.log
+read.txt
+plan.md

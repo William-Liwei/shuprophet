@@ -4,6 +4,7 @@ Each forecaster returns predictions + metadata for ensemble weighting.
 """
 
 import numpy as np
+import warnings
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from statsmodels.tsa.arima.model import ARIMA
 
@@ -18,7 +19,9 @@ def arima_forecast(data: list, steps: int = 10) -> dict:
         for d in [0, 1]:
             for q in [0, 1]:
                 try:
-                    m = ARIMA(y, order=(p, d, q)).fit()
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        m = ARIMA(y, order=(p, d, q)).fit()
                     if m.aic < best_aic:
                         best_aic, best_order, best_model = m.aic, (p, d, q), m
                 except Exception:
@@ -27,7 +30,9 @@ def arima_forecast(data: list, steps: int = 10) -> dict:
     if best_model is None:
         # Fallback: simple ARIMA(1,1,0)
         try:
-            best_model = ARIMA(y, order=(1, 1, 0)).fit()
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                best_model = ARIMA(y, order=(1, 1, 0)).fit()
             best_order = (1, 1, 0)
         except Exception:
             return _fallback_forecast(y, steps, "arima")
@@ -56,10 +61,12 @@ def ets_forecast(data: list, steps: int = 10) -> dict:
         seasonal = "add"
 
     try:
-        model = ExponentialSmoothing(
-            y, trend="add", seasonal=seasonal,
-            seasonal_periods=sp if seasonal else None,
-        ).fit(optimized=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            model = ExponentialSmoothing(
+                y, trend="add", seasonal=seasonal,
+                seasonal_periods=sp if seasonal else None,
+            ).fit(optimized=True)
         fc = model.forecast(steps)
         preds = [round(float(v), 4) for v in fc]
     except Exception:

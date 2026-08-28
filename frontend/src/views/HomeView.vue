@@ -5,7 +5,7 @@
       <div class="hero-content">
         <img src="@/assets/logo.png" alt="鼠先知" class="hero-logo" />
         <h1 class="hero-title">新一代时序智能预测与决策平台</h1>
-        <p class="hero-subtitle">基于6篇CCF论文的前沿算法 · 零代码门槛 · 秒级专业预测</p>
+        <p class="hero-subtitle">9项时序研究成果 · 可解释工具Agent · 零代码分析与预测</p>
         <div class="hero-actions">
           <el-button type="primary" size="large" @click="$router.push('/agent')" round class="btn-primary">
             免费试用 <el-icon class="el-icon--right"><ArrowRight /></el-icon>
@@ -39,10 +39,10 @@
     <section class="papers">
       <h2 class="section-title">学术成果</h2>
       <div class="papers-grid">
-        <div class="paper-card" v-for="p in papers" :key="p.model">
-          <div class="paper-badge" :class="p.rank.toLowerCase().replace('-','')">{{ p.rank }}</div>
-          <div class="paper-model">{{ p.model }}</div>
-          <div class="paper-conf">{{ p.conf }}</div>
+        <div class="paper-card" v-for="paper in papers" :key="paper.id">
+          <div class="paper-badge" :class="rankClass(paper.rank)">{{ paper.rank }}</div>
+          <div class="paper-model">{{ paper.name }}</div>
+          <div class="paper-conf">{{ paper.venueShort }} · {{ paper.task }}</div>
         </div>
       </div>
     </section>
@@ -67,6 +67,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { ArrowRight } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import { publications } from '@/data/publications'
 
 // 基准日期：2025年1月1日
 const baseDate = new Date('2026-02-01')
@@ -90,14 +91,8 @@ const features = [
   { icon: '🔬', title: '前沿算法', desc: '智能预测引擎自动路由选择最优算法', bg: '/features/algorithm-bg.png' },
 ]
 
-const papers = [
-  { rank: 'CCF-B', conf: 'ICASSP 2026', model: 'ScatterFusion' },
-  { rank: 'CCF-B', conf: 'ICASSP 2026', model: 'AWGFormer' },
-  { rank: 'CCF-C', conf: 'ICANN 2025', model: 'SWIFT' },
-  { rank: 'CCF-C', conf: 'ICIC 2025', model: 'LWSpace' },
-  { rank: 'CCF-C', conf: 'ICIC 2025', model: 'EnergyPatchTST' },
-  { rank: 'CCF-C', conf: 'ICANN 2025', model: 'TimeFlowDiffuser' },
-]
+const papers = publications
+const rankClass = (rank) => rank.toLowerCase().replace(/[^a-z0-9]/g, '')
 
 const testimonials = [
   {
@@ -407,8 +402,23 @@ onMounted(async () => {
   color: white;
 }
 
+.paper-badge.ccfa {
+  background: #b42318;
+  color: white;
+}
+
 .paper-badge.ccfc {
   background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.paper-badge.arxiv {
+  background: #334155;
+  color: white;
+}
+
+.paper-badge.eiindex {
+  background: #0f766e;
   color: white;
 }
 

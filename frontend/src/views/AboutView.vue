@@ -26,22 +26,23 @@
       </el-col>
     </el-row>
 
-    <!-- 3. 自研模型矩阵 -->
-    <h2 class="section-title"><span>自研模型矩阵：驱动平台的核心引擎</span></h2>
+    <!-- 3. 论文成果矩阵 -->
+    <h2 class="section-title"><span>论文成果矩阵：从研究到可验证能力</span></h2>
     <div class="intro-paragraph">
-      <p>平台的核心由我们独立设计和实现的六大SOTA（State-of-the-Art）模型驱动，包括2篇CCF-B和4篇CCF-C论文。它们并非孤立的算法，而是一个针对时间序列预测中不同挑战（如多尺度、不确定性、长程依赖）而构建的协同矩阵，共同构成了"鼠先知"强大的预测能力。</p>
+      <p>研究组合现包含9项时序成果：1篇CCF-A、3篇CCF-B、4篇CCF-C和1篇审稿中预印本，覆盖聚类、生成、异构预测、多尺度建模与不确定性估计。平台当前提供其中6个预测模型的统一对比展示，并以可解释工具Agent完成数据分析与预测验证。</p>
     </div>
     <div class="models-grid">
-      <div class="model-intro-card" v-for="model in models" :key="model.name">
+      <div class="model-intro-card" v-for="paper in papers" :key="paper.id">
         <div class="model-card-header">
-          <el-image :src="model.imageUrl" fit="cover" class="model-image" />
+          <el-image :src="paper.imageUrl" fit="cover" class="model-image" />
           <div class="model-name-overlay">
-            <h3>{{ model.name }}</h3>
-            <span>{{ model.tagline }}</span>
+            <h3>{{ paper.name }}</h3>
+            <span>{{ paper.tagline }}</span>
           </div>
         </div>
         <div class="model-card-body">
-          <p>{{ model.description }}</p>
+          <div class="publication-meta">{{ paper.rank }} · {{ paper.venueShort }} · {{ paper.authorRole }}</div>
+          <p>{{ paper.abstractZh }}</p>
         </div>
       </div>
     </div>
@@ -71,6 +72,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Aim, View, MagicStick, DataLine, Right, Collection, Cpu, Opportunity, Rank } from '@element-plus/icons-vue';
+import { publications } from '@/data/publications';
 
 const router = useRouter();
 
@@ -84,50 +86,12 @@ const philosophy = ref([
   { icon: MagicStick, title: '开放与可扩展', description: '平台采用开放架构。研究者无需修改任何前后端代码，仅通过更新数据文件，即可集成、验证和对比新的算法成果。' },
 ]);
 
-// 自研模型数据
-const models = ref([
-  {
-    name: 'ScatterFusion',
-    tagline: '层级散射变换，鲁棒预测',
-    description: '基于层级散射变换框架，通过多尺度不变特征提取实现鲁棒预测。该模型在ICASSP 2026 (CCF-B)发表，擅长处理复杂时序模式和噪声干扰。',
-    imageUrl: 'https://www.weili.space/about/images/scatterfusion.png',
-  },
-  {
-    name: 'AWGFormer',
-    tagline: '自适应小波引导Transformer',
-    description: '创新性地将自适应小波变换与Transformer架构结合，实现多分辨率时序预测。该模型在ICASSP 2026 (CCF-B)发表，在多尺度特征捕捉方面表现卓越。',
-    imageUrl: 'https://www.weili.space/about/images/awgformer.png',
-  },
-  {
-    name: 'EnergyPatchTST',
-    tagline: '多尺度分解与不确定性量化',
-    description: '专为能源领域设计，它将序列分块（Patching）并结合多尺度分析，同时创新地引入概率预测，输出预测区间而非单点，为风险决策提供关键信息。',
-    imageUrl: 'https://www.weili.space/about/images/energypatchtst.png',
-  },
-  {
-    name: 'SWIFT',
-    tagline: '双路径协同，高效预测',
-    description: '协同融合了选择性状态空间（Mamba）和多尺度扩张卷积，通过双路径架构并行捕捉长程依赖和多尺度模式，实现了预测精度与效率的完美平衡。',
-    imageUrl: 'https://www.weili.space/about/images/swift.png',
-  },
-  {
-    name: 'LWSpace',
-    tagline: '小波变换与状态空间',
-    description: '将经典的小波分析与现代的状态空间模型（SSM）有机结合，能够在不同频率上对序列进行精细建模，对多变和充满噪声的数据具有极强的鲁棒性。',
-    imageUrl: 'https://www.weili.space/about/images/lwspace.png',
-  },
-  {
-    name: 'TimeFlowDiffuser',
-    tagline: '层级扩散，生成未来',
-    description: '通过创新的层级式扩散框架，将生成模型的强大威力引入时序领域，尤其擅长处理长周期预测和复杂条件分布，为预测提供更丰富的可能性。',
-    imageUrl: 'https://www.weili.space/about/images/timeflowdiffuser.png',
-  },
-]);
+const papers = publications;
 
 // 导览步骤数据
 const steps = ref([
     { title: '探索科研成果', description: '在「数据探索」模块，选择预置的数据集，直观对比多个SOTA模型在真实数据上的预测表现、MAE和MSE等关键指标。' },
-    { title: 'AI智能助理', description: '上传您的时间序列数据，AI助理将自动分析并生成专业预测报告，支持ARIMA基线、智能预测引擎和深度推理模式。' },
+    { title: '时序分析Agent', description: '上传时间序列数据并设置预测步数，鼠先知引擎将自动完成数据画像、路径选择、结果校验与专业报告生成。' },
     { title: '社区广场', description: '在社区分享您的分析结果和AI对话，与其他用户交流经验，通过发帖、评论获得积分奖励，解锁更多功能。' },
     { title: '深入算法原理', description: '在「算法文库」页面，详细了解每个自研模型的核心思想、关键创新和架构图，并可访问论文和代码仓库。' }
 ])
@@ -303,6 +267,13 @@ const steps = ref([
   color: #6e6e73;
   line-height: 1.7;
   margin: 0;
+}
+
+.publication-meta {
+  color: #1d1d1f;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
 }
 
 .action-center {

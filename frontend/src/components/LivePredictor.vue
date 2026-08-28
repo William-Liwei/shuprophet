@@ -21,7 +21,7 @@
       </div>
       <template #tip>
         <div class="el-upload__tip">
-          上传仅含两列 (X, Y) 的CSV文件，后台将使用ARIMA模型进行实时预测。
+          上传仅含两列 (X, Y) 的CSV文件，由鼠先知引擎进行实时预测。
         </div>
       </template>
     </el-upload>
@@ -112,7 +112,7 @@ const predictionChartOption = computed(() => {
       trigger: 'axis' 
     },
     legend: { 
-      data: ['历史数据', 'ARIMA预测值'], 
+      data: ['历史数据', '鼠先知引擎'],
       top: 'bottom', 
       textStyle: { color: '#e2e8f0' } 
     },
@@ -141,7 +141,7 @@ const predictionChartOption = computed(() => {
         itemStyle: { color: '#38bdf8' }
       },
       { 
-        name: 'ARIMA预测值', 
+        name: '鼠先知引擎',
         type: 'line', // 预测数据用虚线表示
         smooth: true, 
         showSymbol: false, 

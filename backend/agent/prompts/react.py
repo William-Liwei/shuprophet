@@ -9,13 +9,11 @@ REACT_PROMPT = """Based on the current observation, decide your next action.
 {observation}
 
 ## Instructions
-Think step by step:
-1. What have I learned so far?
-2. What information am I still missing?
-3. Which tool should I call next, and why?
+Evaluate the current evidence and choose one useful next tool. Provide only a short,
+user-safe rationale; do not expose private chain-of-thought or internal routing details.
 
 Respond in this exact JSON format:
-{{"thought": "your reasoning here", "action": "tool_name", "action_input": {{}}, "should_stop": false}}
+{{"rationale": "brief evidence-based reason", "action": "tool_name", "action_input": {{}}, "should_stop": false}}
 
 If you have enough information to make a forecast, set should_stop to true.
 If calling a forecaster tool, include "steps" in action_input.

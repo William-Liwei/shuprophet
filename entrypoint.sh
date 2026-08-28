@@ -1,3 +1,8 @@
 #!/bin/sh
+set -eu
+
 echo "=== 启动应用 ==="
-exec gunicorn -w 2 --threads 4 -b 0.0.0.0:8080 --timeout 300 --preload app:app --chdir backend
+workers="${WEB_CONCURRENCY:-1}"
+port="${PORT:-8080}"
+
+exec gunicorn -w "$workers" --threads 4 -b "0.0.0.0:$port" --timeout 300 --preload app:app --chdir backend

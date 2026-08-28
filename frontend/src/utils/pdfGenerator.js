@@ -27,7 +27,7 @@ export async function generateReport(data) {
   pdf.setFontSize(12);
   pdf.text('模型说明:', 20, 140);
   pdf.setFontSize(10);
-  pdf.text('智能预测引擎基于数据特征自动路由选择最优算法', 20, 150);
+  pdf.text('鼠先知引擎基于数据画像与验证结果自动选择预测路径', 20, 150);
   pdf.text('包含统计模型与深度学习模型的集成预测', 20, 158);
 
   return pdf;
