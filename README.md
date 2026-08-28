@@ -3,34 +3,6 @@
 <div align="center">
   <img src="./frontend/src/assets/logo.png" alt="SHU Prophet Logo" width="600"/>
 
-<p>
-    <strong>学术驱动的时间序列智能决策平台</strong>
-  </p>
-
-<p>
-    <a href="https://github.com/William-Liwei/shuprophet/stargazers">
-      <img src="https://img.shields.io/github/stars/William-Liwei/shuprophet?style=social" alt="GitHub stars">
-    </a>
-    <a href="https://github.com/William-Liwei/shuprophet/network/members">
-      <img src="https://img.shields.io/github/forks/William-Liwei/shuprophet?style=social" alt="GitHub forks">
-    </a>
-    <a href="https://github.com/William-Liwei/shuprophet/issues">
-      <img src="https://img.shields.io/github/issues/William-Liwei/shuprophet" alt="GitHub issues">
-    </a>
-    <a href="https://github.com/William-Liwei/shuprophet/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/William-Liwei/shuprophet" alt="License">
-    </a>
-  </p>
-
-<p>
-    <img src="https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js" alt="Vue 3">
-    <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python" alt="Python">
-    <img src="https://img.shields.io/badge/Flask-2.x-000000?style=for-the-badge&logo=flask" alt="Flask">
-    <img src="https://img.shields.io/badge/LangChain-Powered-8A2BE2?style=for-the-badge" alt="LangChain">
-    <img src="https://img.shields.io/badge/PostgreSQL-Supported-4169E1?style=for-the-badge&logo=postgresql" alt="PostgreSQL">
-  </p>
-</div>
-
 ## ⭐ Star History
 
 <div align="center">
@@ -51,28 +23,28 @@
 
 ### 🎓 学术背景
 
-| 类型 | 会议 / 状态 | 成果数 |
-| ---- | ----------- | ------ |
-| CCF-A | KDD 2026 | 1 篇 |
-| CCF-B | DASFAA 2026 / ICASSP 2026 | 3 篇 |
-| CCF-C | ICANN 2025 / ICIC 2025 | 4 篇 |
-| arXiv | Under Reviewing | 1 篇 |
+| 类型  | 会议 / 状态               | 成果数 |
+| ----- | ------------------------- | ------ |
+| CCF-A | KDD 2026                  | 1 篇   |
+| CCF-B | DASFAA 2026 / ICASSP 2026 | 3 篇   |
+| CCF-C | ICANN 2025 / ICIC 2025    | 4 篇   |
+| arXiv | Under Reviewing           | 1 篇   |
 
-全部成果均由 **黎玮 (Wei Li)** 作为第一作者或共同第一作者完成，其中 7 篇为独立作者论文。
+全部成果均由 **黎玮 (Wei Li)** 作为第一作者或共同第一作者完成。
 
 ### 最新论文成果
 
-| # | 成果 | 方向 | 发表信息 | 链接 |
-| - | ---- | ---- | -------- | ---- |
-| 1 | **APCL** | 未知簇数下的时间序列聚类 | KDD 2026，CCF-A，Full Paper，Poster | [ACM DL](https://dl.acm.org/doi/10.1145/3770855.3817773) / [GitHub](https://github.com/William-Liwei/apcl) |
-| 2 | **SDFlow** | 相似性驱动的时间序列生成 | arXiv 2026，Under Reviewing | [arXiv](https://arxiv.org/abs/2605.05736) |
-| 3 | **ClusterPatchTST** | 不确定性感知的异构时序预测 | DASFAA 2026，CCF-B，Full Paper | - |
-| 4 | **EnergyPatchTST** | 多尺度能源预测与不确定性估计 | ICIC 2025，CCF-C，Oral | [GitHub](https://github.com/William-Liwei/EnergyPatchTST) |
-| 5 | **ScatterFusion** | 层级散射变换时序预测 | ICASSP 2026，CCF-B | - |
-| 6 | **AWGFormer** | 小波引导的多分辨率时序预测 | ICASSP 2026，CCF-B | - |
-| 7 | **SWIFT** | 状态空间与小波融合预测 | ICANN 2025，CCF-C，Oral | [GitHub](https://github.com/William-Liwei/SWIFT) |
-| 8 | **TimeFlowDiffuser** | 层级扩散多视野时序预测 | ICANN 2025，CCF-C，Oral | - |
-| 9 | **LWSpace** | 多尺度状态空间时序预测 | ICIC 2025，CCF-C，Oral | - |
+| # | 成果                       | 方向                         | 发表信息                            | 链接                                                                                                     |
+| - | -------------------------- | ---------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 1 | **APCL**             | 未知簇数下的时间序列聚类     | KDD 2026，CCF-A，Full Paper，Poster | [ACM DL](https://dl.acm.org/doi/10.1145/3770855.3817773) / [GitHub](https://github.com/William-Liwei/apcl) |
+| 2 | **SDFlow**           | 相似性驱动的时间序列生成     | arXiv 2026，Under Reviewing         | [arXiv](https://arxiv.org/abs/2605.05736)                                                                 |
+| 3 | **ClusterPatchTST**  | 不确定性感知的异构时序预测   | DASFAA 2026，CCF-B，Full Paper      | -                                                                                                        |
+| 4 | **EnergyPatchTST**   | 多尺度能源预测与不确定性估计 | ICIC 2025，CCF-C，Oral              | [GitHub](https://github.com/William-Liwei/EnergyPatchTST)                                                 |
+| 5 | **ScatterFusion**    | 层级散射变换时序预测         | ICASSP 2026，CCF-B                  | -                                                                                                        |
+| 6 | **AWGFormer**        | 小波引导的多分辨率时序预测   | ICASSP 2026，CCF-B                  | -                                                                                                        |
+| 7 | **SWIFT**            | 状态空间与小波融合预测       | ICANN 2025，CCF-C，Oral             | [GitHub](https://github.com/William-Liwei/SWIFT)                                                          |
+| 8 | **TimeFlowDiffuser** | 层级扩散多视野时序预测       | ICANN 2025，CCF-C，Oral             | -                                                                                                        |
+| 9 | **LWSpace**          | 多尺度状态空间时序预测       | ICIC 2025，CCF-C，Oral              | -                                                                                                        |
 
 ## 💡 为什么选择鼠先知？
 
@@ -122,15 +94,6 @@
 
 <div align="center">
 
-| 姓名                           | 角色                  | 贡献                                 |
-| ------------------------------ | --------------------- | ------------------------------------ |
-| **黎玮 (Wei Li)**        | 项目负责人 & 算法研发 | 9 项论文成果第一/共同第一作者，核心算法与平台架构 |
-| **王子欣 (Zixin Wang)**  | 前端开发              | 用户界面设计与交互优化               |
-| **徐若轩 (Ruoxuan Xu)**  | 后端开发              | 服务架构与 API 设计                  |
-| **杨哲涵 (Zhehan Yang)** | 全栈开发              | 系统集成与部署                       |
-
-</div>
-
 **联系方式**: liwei008009@163.com
 
 ## 🚀 一键部署
@@ -156,27 +119,27 @@ docker compose down
 
 ### 环境变量说明
 
-| 变量                | 必填 | 说明                                     |
-| ------------------- | ---- | ---------------------------------------- |
+| 变量                | 必填 | 说明                                             |
+| ------------------- | ---- | ------------------------------------------------ |
 | `OPENAI_API_KEY`  | 否   | OpenAI 兼容模型的 API 密钥；仅影响对话与报告润色 |
-| `OPENAI_API_BASE` | 否   | OpenAI 兼容接口地址 |
-| `OPENAI_MODEL`    | 否   | 模型名称 |
-| `DATABASE_URL`    | 否   | SQLAlchemy 数据库连接串 |
-| `DATA_DIR`        | 否   | 默认数据库持久化目录 |
-| `ADMIN_PASSWORD`  | 否   | 管理后台密码；不设则禁用管理员入口 |
-| `JWT_SECRET_KEY`  | 否   | JWT 签名密钥；建议显式设置 |
-| `APP_PORT`        | 否   | Compose 对外端口，默认 `8080` |
+| `OPENAI_API_BASE` | 否   | OpenAI 兼容接口地址                              |
+| `OPENAI_MODEL`    | 否   | 模型名称                                         |
+| `DATABASE_URL`    | 否   | SQLAlchemy 数据库连接串                          |
+| `DATA_DIR`        | 否   | 默认数据库持久化目录                             |
+| `ADMIN_PASSWORD`  | 否   | 管理后台密码；不设则禁用管理员入口               |
+| `JWT_SECRET_KEY`  | 否   | JWT 签名密钥；建议显式设置                       |
+| `APP_PORT`        | 否   | Compose 对外端口，默认`8080`                   |
 
 ## 🛠️ 技术架构
 
-| 层级   | 技术                                              |
-| ------ | ------------------------------------------------- |
-| 前端   | Vue 3 + Vite, Element Plus, ECharts, Pinia, Axios |
-| 后端   | Flask, SQLAlchemy, Gunicorn (gthread)             |
+| 层级   | 技术                                                     |
+| ------ | -------------------------------------------------------- |
+| 前端   | Vue 3 + Vite, Element Plus, ECharts, Pinia, Axios        |
+| 后端   | Flask, SQLAlchemy, Gunicorn (gthread)                    |
 | Agent  | 自适应统计工具链、时间留出验证、预测校验、可追溯执行记录 |
-| LLM    | 可选的 OpenAI 兼容接口，仅用于对话与证据转述 |
-| 数据库 | SQLAlchemy，默认 SQLite，兼容 PostgreSQL |
-| 部署   | Docker 多阶段构建 + Docker Compose |
+| LLM    | 可选的 OpenAI 兼容接口，仅用于对话与证据转述             |
+| 数据库 | SQLAlchemy，默认 SQLite，兼容 PostgreSQL                 |
+| 部署   | Docker 多阶段构建 + Docker Compose                       |
 
 ## 📁 项目结构
 
@@ -227,7 +190,6 @@ Apache License 2.0 — 详见 [LICENSE](LICENSE)。
 
 - **项目负责人**: 黎玮 (Wei Li)
 - **邮箱**: liwei008009@163.com
-- **上海大学** 计算机工程与科学学院
 
 ---
 
