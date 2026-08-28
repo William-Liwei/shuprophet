@@ -2,13 +2,6 @@
 
 <div align="center">
   <img src="./frontend/src/assets/logo.png" alt="SHU Prophet Logo" width="600"/>
-
-## ⭐ Star History
-
-<div align="center">
-  <a href="https://star-history.com/#William-Liwei/shuprophet&Date">
-    <img src="https://api.star-history.com/svg?repos=William-Liwei/shuprophet&type=Date" alt="Star History Chart" width="600">
-  </a>
 </div>
 
 ---
