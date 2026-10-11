@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+import { createApp, defineAsyncComponent } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
@@ -6,34 +6,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 import './assets/main.css'
-
-import ECharts from 'vue-echarts'
-import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
-import { LineChart, ScatterChart, BarChart } from "echarts/charts";
-import {
-  TitleComponent,
-  TooltipComponent,
-  LegendComponent,
-  GridComponent,
-  ToolboxComponent,
-  DataZoomComponent,
-  VisualMapComponent,
-} from "echarts/components";
-
-use([
-  CanvasRenderer,
-  LineChart,
-  ScatterChart,
-  BarChart,
-  TitleComponent,
-  TooltipComponent,
-  LegendComponent,
-  GridComponent,
-  ToolboxComponent,
-  DataZoomComponent,
-  VisualMapComponent,
-]);
+import './assets/studio.css'
 
 const app = createApp(App)
 
@@ -44,5 +17,5 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(createPinia())
 app.use(router)
 app.use(ElementPlus)
-app.component('v-chart', ECharts)
+app.component('v-chart', defineAsyncComponent(() => import('./components/EChart.vue')))
 app.mount('#app')

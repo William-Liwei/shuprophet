@@ -6,7 +6,6 @@
 **/__pycache__
 **/*.pyc
 **/node_modules
-frontend/dist
 backend/shu_prophet.db
 backend/data
 backend/uploads
@@ -14,3 +13,13 @@ uploads
 *.log
 read.txt
 plan.md
+.private-release
+.venv-studio
+.qa
+private
+.agents
+.codex
+.aws
+backend/tests
+**/.env
+**/.env.*

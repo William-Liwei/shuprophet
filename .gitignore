@@ -33,3 +33,15 @@ read.txt
 /paper/
 /ts-vision/
 plan.md
+
+# Proprietary server implementation and local-only delivery artifacts
+/backend/
+/.private-release/
+/private/
+/.venv-studio/
+/.qa/
+/uploads/
+/dist/
+__pycache__/
+*.sqlite3*
+*.db

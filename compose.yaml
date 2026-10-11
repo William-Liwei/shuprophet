@@ -1,27 +1,36 @@
+x-engine: &engine
+  image: shuprophet-studio:local
+  build:
+    context: .
+  environment:
+    DATA_DIR: /data
+    STUDIO_ACCESS_TOKEN: "${STUDIO_ACCESS_TOKEN:-}"
+    WEB_CONCURRENCY: "${WEB_CONCURRENCY:-2}"
+  volumes:
+    - shuprophet-data:/data
+  restart: unless-stopped
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
 services:
   shuprophet:
-    build:
-      context: .
+    <<: *engine
+    command: ["web"]
     ports:
-      - "${APP_PORT:-8080}:8080"
-    environment:
-      DATA_DIR: /data
-      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
-      OPENAI_API_BASE: "${OPENAI_API_BASE:-}"
-      OPENAI_MODEL: "${OPENAI_MODEL:-}"
-      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-}"
-      JWT_SECRET_KEY: "${JWT_SECRET_KEY:-}"
-      DATABASE_URL: "${DATABASE_URL:-}"
-      WEB_CONCURRENCY: "${WEB_CONCURRENCY:-1}"
-    volumes:
-      - shuprophet-data:/data
-    restart: unless-stopped
+      - "${BIND_HOST:-127.0.0.1}:${APP_PORT:-8080}:8080"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api/health', timeout=3)"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 20s
+  worker:
+    <<: *engine
+    command: ["worker"]
+    stop_grace_period: 2m
 
 volumes:
   shuprophet-data:

@@ -1,0 +1,27 @@
+name: Public frontend checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Assert private source is absent
+        run: |
+          if git ls-files | grep -Eq '^(backend/|private/|\.private-release/|\.env$)'; then
+            echo 'Private artifacts found in public checkout'
+            exit 1
+          fi
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend

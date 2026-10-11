@@ -1,0 +1,6 @@
+<template><div class="s-page"><div class="s-page-heading"><div><p class="s-eyebrow">DOWNSTREAM UTILITY</p><h1>预测，成为检验数据的一种工具。</h1><p>用真实留出集上的任务表现，衡量合成数据是否带来收益。</p></div></div><section class="s-panel s-tools-intro"><el-icon><TrendCharts /></el-icon><h2>把预测放回数据实验中</h2><p>质量评估中已包含真实训练、合成训练以及混合训练的预测比较。你可以从一个生成实验开始，观察它是否改变了真实留出数据上的误差。</p><RouterLink to="/evaluate" class="s-button primary">查看下游效用 →</RouterLink></section><div class="s-two-col"><article class="s-panel"><span class="s-eyebrow">RESEARCH ASSETS</span><h2>保留已有研究积累</h2><p class="s-muted">EnergyPatchTST、SWIFT 等工作为后续更丰富的下游评估提供研究基础。论文信息、参考资料与原有预测展示继续保留。</p><RouterLink to="/algorithms" class="s-text-link">浏览研究文库 →</RouterLink></article><article class="s-panel"><span class="s-eyebrow">CLASSIC WORKSPACE</span><h2>原版预测工作区</h2><p class="s-muted">旧版预测展示与助理需要启用完整服务。数据工作台可独立运行。</p><div v-if="studio.capabilities?.legacy_available" class="s-actions"><RouterLink to="/app" class="s-button">预测展示</RouterLink><RouterLink to="/agent" class="s-button">分析助理</RouterLink></div><span v-else class="s-status planned">当前工作区未启用旧版服务</span></article></div></div></template>
+<script setup>
+import { TrendCharts } from '@element-plus/icons-vue'
+import { useStudioStore } from '../../stores/studio'
+const studio = useStudioStore()
+</script>

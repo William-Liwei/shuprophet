@@ -1,8 +1,16 @@
 #!/bin/sh
 set -eu
 
-echo "=== 启动应用 ==="
-workers="${WEB_CONCURRENCY:-1}"
-port="${PORT:-8080}"
-
-exec gunicorn -w "$workers" --threads 4 -b "0.0.0.0:$port" --timeout 300 --preload app:app --chdir backend
+case "${1:-web}" in
+  web)
+    exec gunicorn --workers "${WEB_CONCURRENCY:-2}" --threads 2 \
+      --bind "0.0.0.0:${PORT:-8080}" --timeout 120 \
+      --access-logfile - --error-logfile - 'studio_app:create_app()'
+    ;;
+  worker)
+    exec python -m studio.worker
+    ;;
+  *)
+    exec "$@"
+    ;;
+esac
