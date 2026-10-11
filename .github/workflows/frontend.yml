@@ -17,10 +17,12 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Assert private source is absent
         run: |
-          if git ls-files | grep -Eq '^(backend/|private/|\.private-release/|\.env$)'; then
+          if git ls-files | grep -vE '(^|/)\.env\.example$' | grep -Eq '^(backend/|private/|\.private-release/|\.secrets/)|(^|/)(\.env(\..*)?|server\.env|llm_api_key)$'; then
             echo 'Private artifacts found in public checkout'
             exit 1
           fi
+      - name: Check deployment configuration persistence
+        run: python3 -m unittest discover -s scripts/tests -v
       - run: npm ci
         working-directory: frontend
       - run: npm run build

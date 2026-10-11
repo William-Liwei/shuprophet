@@ -10,6 +10,8 @@
 /backend/blueprints/__pycache__/
 *.pyc
 .env
+.env.*
+!.env.example
 /backend/shu_prophet.db
 /backend/data/
 /backend/avatars/
@@ -45,3 +47,6 @@ plan.md
 __pycache__/
 *.sqlite3*
 *.db
+/.secrets/
+server.env
+llm_api_key

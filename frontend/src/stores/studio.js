@@ -40,9 +40,9 @@ export const useStudioStore = defineStore('studio', () => {
       if (!selected.value && datasets.value.length) select(datasets.value[0].id)
     } catch (err) { connected.value = false; fail(err) } finally { loading.value = false }
   }
-  async function action(path, payload) {
+  async function action(path, payload, options = {}) {
     error.value = ''
-    try { return (await api.post(path, payload)).data } catch (err) { fail(err); throw err }
+    try { return (await api.post(path, payload, options)).data } catch (err) { fail(err); throw err }
   }
   async function addDemo(id) {
     const result = await action('/datasets/demo', { demo: id })
@@ -62,10 +62,10 @@ export const useStudioStore = defineStore('studio', () => {
     else generationId.value = job.id
     return job
   }
-  async function ask(message) {
-    return action('/assistant', { message, dataset_id: selected.value?.id,
+  async function ask(message, history = []) {
+    return action('/assistant', { message, history, dataset_id: selected.value?.id,
       discovery_id: discovery.value?.status === 'completed' ? discovery.value.id : undefined,
-      generation_id: generation.value?.status === 'completed' ? generation.value.id : undefined })
+      generation_id: generation.value?.status === 'completed' ? generation.value.id : undefined }, { timeout: 60000 })
   }
   async function poll() {
     if (polling || !connected.value || !pending.value.length) return

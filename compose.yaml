@@ -19,6 +19,13 @@ services:
   shuprophet:
     <<: *engine
     command: ["web"]
+    environment:
+      DATA_DIR: /data
+      STUDIO_ACCESS_TOKEN: "${STUDIO_ACCESS_TOKEN:-}"
+      WEB_CONCURRENCY: "${WEB_CONCURRENCY:-2}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENAI_API_BASE: "${OPENAI_API_BASE:-}"
+      OPENAI_MODEL: "${OPENAI_MODEL:-}"
     ports:
       - "${BIND_HOST:-127.0.0.1}:${APP_PORT:-8080}:8080"
     healthcheck:

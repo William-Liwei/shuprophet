@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     required = ["backend/studio_app.py", "backend/requirements-studio.txt", "frontend/dist/index.html",
-                "Dockerfile", "compose.yaml", "entrypoint.sh", ".env.example", ".dockerignore"]
+                "Dockerfile", "compose.yaml", "compose.secrets.yaml", "scripts/deploy.py", "entrypoint.sh", ".env.example", ".dockerignore"]
     for name in required:
         if not (ROOT / name).is_file():
             raise SystemExit(f"Missing {name}. Restore the private backend and build the frontend first.")
@@ -34,7 +34,7 @@ def main():
         bundle.add(metadata, arcname="release-manifest.json")
     print(f"Private release: {archive}")
     print(f"SHA256: {hashlib.sha256(archive.read_bytes()).hexdigest()}")
-    print("Keep this archive private. On a Docker server: extract, then docker compose up --build -d")
+    print("Keep this archive private. On a Linux Docker server: extract, then python3 scripts/deploy.py")
 
 
 if __name__ == "__main__":
