@@ -13,7 +13,7 @@ let saved = []
 try { const value = JSON.parse(sessionStorage.getItem('studio-llm-conversation-v1') || '[]'); saved = Array.isArray(value) ? value.slice(-40) : [] } catch { /* empty session */ }
 const messages = ref(saved)
 watch(messages, () => { try { sessionStorage.setItem('studio-llm-conversation-v1', JSON.stringify(messages.value.slice(-40))) } catch { /* browser storage unavailable */ } }, { deep: true })
-async function scroll() { await nextTick(); if (conversation.value) conversation.value.scrollTop = conversation.value.scrollHeight }
+async function scroll() { await nextTick(); if (conversation.value) conversation.value.scrollTop = messages.value.length || busy.value ? conversation.value.scrollHeight : 0 }
 async function send(prompt) {
   const text = (typeof prompt === 'string' ? prompt : input.value).trim()
   if (!text || busy.value || !studio.connected) return
@@ -25,6 +25,6 @@ async function send(prompt) {
   catch (err) { messages.value.push({ role: 'assistant', text: err.response?.data?.error || '暂时无法连接助手，请稍后重试。', error: true, dataset, datasetId }) }
   finally { busy.value = false; await scroll() }
 }
-function clear() { if (!busy.value) messages.value = [] }
+function clear() { if (!busy.value) { messages.value = []; scroll() } }
 onMounted(scroll)
 </script>

@@ -4,8 +4,6 @@
 
 面向时间序列的数据智能工作台：理解数据包含的结构，探索需要补足的样本，用可追溯的实验报告验证数据用途。
 
-![ShuProphet Data Studio](docs/images/studio-overview.png)
-
 ## 科研基础
 
 | 研究 | 核心问题 | 成果 |
